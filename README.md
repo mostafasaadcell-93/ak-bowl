@@ -3,7 +3,7 @@
 A 3D order website for **AK Bowl** (AK Brand · Healthy Eats, Instagram [@ak__bowl](https://www.instagram.com/ak__bowl/)).
 It's plain HTML/CSS/JS with no build step. The 3D cup uses Three.js, and Three.js and the fonts are bundled locally in `assets/`.
 
-> **Concept demo.** The site is marked `noindex`, carries a "Concept demo" label, and orders run in demo mode. Keep it that way until AK Bowl approves.
+> **Concept demo.** The site is marked `noindex` and carries a "Concept demo" label. **Orders are live**: checkout opens WhatsApp to AK Bowl (70 426 400) with the whole order typed out, and the customer taps Send.
 
 ## What's inside
 
@@ -27,12 +27,12 @@ It's plain HTML/CSS/JS with no build step. The 3D cup uses Three.js, and Three.j
 - **Pistachio:** 40 g protein, 210 kcal and 16 g fat don't add up (40 g protein + 16 g fat alone is about 300 kcal). Worth checking the label.
 - **Oreo:** no nutrition label yet, so the site shows "Full label soon".
 - They say "11 flavors", but only 10 appear in their posts.
-- WhatsApp number for orders, and the delivery fee for orders under 10 cups.
+- The delivery fee for orders under 10 cups.
 - Free catches you can mention: the Dark Chocolate lid says "DARC", and the Cheesecake lid says "BE STITRONG".
 
 ## Going live (after they say yes)
 
-1. `app.js`: set `ORDER_WHATSAPP = '961XXXXXXXX'`. Orders and wholesale requests will then open WhatsApp with the full text.
+1. WhatsApp orders are already on (`ORDER_WHATSAPP = '96170426400'` in `app.js`; set it to `''` for demo mode).
 2. `index.html`: remove the `noindex` meta tag, the "Concept demo" tag and the footer disclaimer.
 
 Fonts (League Spartan, Montserrat, Pinyon Script) are under the SIL Open Font License, via Fontsource. Three.js is MIT-licensed.

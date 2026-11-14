@@ -2,9 +2,14 @@
    Data: data.js (window.AK). The 3D cup is scene.js (window.AKScene). */
 'use strict';
 
-/* Leave empty for demo mode. With AK Bowl's permission, set to their WhatsApp in international
-   format (e.g. '9617XXXXXXX') and orders + wholesale requests open WhatsApp with the full text. */
-const ORDER_WHATSAPP = '';
+/* AK Bowl's WhatsApp (70 426 400) in international format. Orders and wholesale requests open
+   WhatsApp with the full text typed out; the customer just taps Send. Set to '' for demo mode. */
+const ORDER_WHATSAPP = '96170426400';
+const waLink = text => `https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent(text)}`;
+function openWA(text) {
+  const url = waLink(text), w = window.open(url, '_blank');
+  if (w) w.opener = null; else location.href = url;   // popup blocked (e.g. Instagram's in-app browser): go there directly
+}
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -215,7 +220,7 @@ function renderCart() {
       <div class="field"><label for="cPhone">Phone</label><input id="cPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="70 123 456" value="${esc(form.phone)}"><span class="err" id="ePhone"></span></div>
       <div class="field"><label for="cAddr">Delivery address</label><input id="cAddr" name="address" autocomplete="street-address" placeholder="Area, street, building" value="${esc(form.address)}"><span class="err" id="eAddr"></span></div>
       <div class="field"><label for="cNotes">Notes (optional)</label><textarea id="cNotes" name="notes" rows="3" placeholder="Best time to deliver, floor…">${esc(form.notes)}</textarea></div></form>`;
-    foot.innerHTML = `<button class="gobtn" type="submit" form="ckForm"><span>Place order</span><span>${money(p.total)}</span></button><button class="gobtn ghost" type="button" id="ckBack">Back</button>`;
+    foot.innerHTML = `<button class="gobtn" type="submit" form="ckForm"><span>Send order on WhatsApp</span><span>${money(p.total)}</span></button><button class="gobtn ghost" type="button" id="ckBack">Back</button>`;
     const f = $('#ckForm');
     f.addEventListener('input', () => { form = Object.fromEntries(new FormData(f)); try { localStorage.setItem('akbowl-details', JSON.stringify(form)); } catch (e) {} });
     f.addEventListener('submit', placeOrder);
@@ -228,10 +233,11 @@ function placeOrder(e) {
   $('#eName').textContent = eN ? 'Tell us your name.' : ''; $('#ePhone').textContent = eP ? 'We need a phone number to deliver.' : ''; $('#eAddr').textContent = eA ? 'Where should we deliver?' : '';
   if (eN || eP || eA) { (eN ? $('#cName') : eP ? $('#cPhone') : $('#cAddr')).focus(); return; }
   const p = price(), no = 'AK-' + Math.floor(1000 + Math.random() * 9000);
-  const txt = `AK Bowl order ${no}\n${FL.filter(f => cart[f.id]).map(f => `${cart[f.id]} × ${f.name}`).join('\n')}\n${p.n} cups · Total ${money(p.total)}${p.save ? ` (box deal −${money(p.save)})` : ''}\nDelivery: ${p.boxes ? 'free' : 'to confirm'}\n${form.name.trim()} · ${form.phone}\n${form.address.trim()}${form.notes ? '\nNotes: ' + form.notes : ''}`;
-  if (ORDER_WHATSAPP) window.open(`https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent(txt)}`, '_blank', 'noopener');
+  const items = FL.filter(f => cart[f.id]).map(f => `🥤 ${cart[f.id]} × ${f.name} (${money(cart[f.id] * AK.price)})`).join('\n');
+  const txt = `*New AK Bowl order* ${no}\n\n${items}\n\n${p.n} cup${p.n > 1 ? 's' : ''}: ${money(p.full)}${p.save ? `\nBox deal (${p.boxes} × 10 for $25): −${money(p.save)}` : ''}\n*Total: ${money(p.total)}*\nDelivery: ${p.boxes ? 'Free' : 'please confirm the fee'}\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📍 ${form.address.trim()}${form.notes.trim() ? '\n📝 ' + form.notes.trim() : ''}`;
+  if (ORDER_WHATSAPP) openWA(txt);
   view = 'done';
-  $('#cartBody').innerHTML = `<div class="done"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"/><path pathLength="1" d="M30 52l13 13 27-29"/></svg><h3>Scooping it now!</h3><p>Order <b>${no}</b> for ${esc(form.name.trim())}: ${p.n} cup${p.n > 1 ? 's' : ''}, ${money(p.total)}.</p>${ORDER_WHATSAPP ? '' : '<div class="demo">Demo mode: this order was not sent to AK Bowl.</div>'}</div>`;
+  $('#cartBody').innerHTML = `<div class="done"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"/><path pathLength="1" d="M30 52l13 13 27-29"/></svg><h3>Almost there!</h3><p>Your order <b>${no}</b> (${p.n} cup${p.n > 1 ? 's' : ''}, ${money(p.total)}) is ready in WhatsApp. <b>Just tap Send</b> and AK Bowl will confirm.</p>${ORDER_WHATSAPP ? `<a class="gobtn" style="margin-top:22px;text-decoration:none" href="${waLink(txt)}" target="_blank" rel="noopener"><span>WhatsApp didn't open?</span><span>Open it</span></a>` : '<div class="demo">Demo mode: this order was not sent to AK Bowl.</div>'}</div>`;
   $('#cartFoot').innerHTML = `<button class="gobtn" type="button" id="newOrder"><span>Done</span><span>✓</span></button>`;
   cart = {}; save(); FL.forEach(f => renderCtl(f.id)); updateCounts();
   $('#newOrder').onclick = () => { view = 'list'; closeAll(); };
@@ -297,13 +303,14 @@ $('#wsForm').addEventListener('submit', e => {
   $('#wsErr').textContent = name ? '' : 'Tell us the name of your place.';
   if (!name) { $('#wsName').focus(); return; }
   const txt = `Wholesale request for AK Bowl\n${name} (${$('#wsType').value})\nAbout ${$('#wsQty').value} cups per week\nArea: ${$('#wsArea').value.trim() || '-'}`;
-  if (ORDER_WHATSAPP) window.open(`https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent(txt)}`, '_blank', 'noopener');
+  if (ORDER_WHATSAPP) openWA(txt);
   else toast('Demo mode: request not sent');
   e.target.reset();
 });
 
 /* ================= SCROLL / REVEAL / LOADER ================= */
 $('#igTop').href = AK.instagram; $('#igFoot').href = AK.instagram;
+if (ORDER_WHATSAPP) $('#waFoot').href = `https://wa.me/${ORDER_WHATSAPP}?text=${encodeURIComponent('Hi AK Bowl!')}`; else $('#waFoot').remove();
 const rio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); rio.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
 $$('.reveal').forEach(el => rio.observe(el));
 function onScroll() { $('#hd').classList.toggle('solid', scrollY > 30); layers(); }
