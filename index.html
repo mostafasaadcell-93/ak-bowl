@@ -107,7 +107,7 @@ a{color:inherit}
 .btn.acc{background:var(--acc);transition:transform .4s var(--spring),background .6s}
 .btn svg{width:18px;height:18px}
 /* now in the cup */
-.now{position:absolute;z-index:2;right:var(--gut);bottom:140px;width:260px;padding:18px 20px;border-radius:24px;background:rgba(248,240,227,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 30px 60px -30px rgba(46,26,18,.5),inset 0 0 0 1px rgba(255,255,255,.6)}
+.now{position:absolute;z-index:2;right:var(--gut);bottom:140px;width:280px;padding:18px 20px;border-radius:24px;background:rgba(248,240,227,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 30px 60px -30px rgba(46,26,18,.5),inset 0 0 0 1px rgba(255,255,255,.6)}
 .now .k{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--cocoa2);font-weight:600}
 .now h3{font-family:var(--spartan);font-weight:900;font-size:30px;line-height:1;margin:6px 0 10px;letter-spacing:-.02em}
 .now .big{display:flex;align-items:baseline;gap:6px;font-family:var(--spartan);font-weight:900;color:var(--acc);transition:color .6s}
@@ -117,7 +117,7 @@ a{color:inherit}
 .now .mini span{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;border:1.5px solid var(--line)}
 .now .row{display:flex;align-items:center;justify-content:space-between}
 .now .price{font-family:var(--spartan);font-weight:900;font-size:26px}
-.addpill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:999px;background:var(--acc);color:#fff;font-family:var(--spartan);font-weight:800;letter-spacing:.04em;transition:background .6s,transform .3s var(--spring)}
+.addpill{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;white-space:nowrap;border-radius:999px;background:var(--acc);color:#fff;font-family:var(--spartan);font-weight:800;letter-spacing:.04em;transition:background .6s,transform .3s var(--spring)}
 .addpill:hover{transform:scale(1.05)}
 .addpill svg{width:16px;height:16px}
 .rail{position:absolute;z-index:3;left:0;right:0;bottom:28px;display:flex;gap:10px;padding:6px var(--gut);overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity}
@@ -131,6 +131,7 @@ a{color:inherit}
 .ring svg{width:100%;height:100%;animation:spin 18s linear infinite}
 .ring text{font-family:var(--spartan);font-weight:800;font-size:11.2px;letter-spacing:.22em;fill:var(--cocoa)}
 .ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--spartan);font-weight:900;font-size:40px;line-height:1;color:var(--acc);transition:color .6s}
+.ring.long b{font-size:30px}
 .ring b small{display:block;font-size:11px;letter-spacing:.2em;color:var(--cocoa);text-align:center;margin-top:-4px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .demo-tag{position:absolute;z-index:3;left:var(--gut);bottom:90px;font-size:11.5px;color:var(--cocoa2);opacity:.8}
@@ -249,6 +250,24 @@ a{color:inherit}
 .field input:focus,.field select:focus,.field textarea:focus{outline:0;border-color:var(--cocoa)}
 .field .err{font-size:13px;color:#B3261E;min-height:0}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* owner settings: banner, badges, sold out, promo */
+.ann{position:fixed;top:0;left:0;right:0;z-index:52;height:36px;display:flex;align-items:center;justify-content:center;padding:0 14px;background:var(--cocoa);color:var(--paper);font-size:13px;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ann.closed{background:#A8261F}
+body.has-ann .hd{top:36px}
+body.has-ann .toast{bottom:100px}
+.card .badges{position:absolute;top:14px;left:14px;z-index:2;display:flex;gap:6px;pointer-events:none}
+.card .badge{padding:6px 12px;border-radius:999px;font-family:var(--spartan);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 8px 16px -8px rgba(0,0,0,.4)}
+.badge.new{background:var(--cocoa);color:var(--paper)}
+.badge.out{background:#fff;color:#A8261F}
+.card.soldout .ph img{filter:grayscale(.75) opacity(.7)}
+.soldtxt{font-family:var(--spartan);font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#A8261F}
+.promo{display:flex;gap:8px;margin-top:18px}
+.promo input{flex:1;min-width:0;min-height:48px;padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--paper);font-size:16px;text-transform:uppercase}
+.promo button{height:48px;padding:0 18px;border-radius:14px;background:var(--cocoa);color:var(--paper);font-weight:700}
+.promo-msg{font-size:13px;color:#A8261F;margin-top:6px;min-height:1px}
+.closedmsg{font-size:14px;color:#A8261F;font-weight:600;margin-bottom:10px;text-align:center}
+.preview-pill{position:fixed;left:16px;top:50%;z-index:140;transform:rotate(-90deg) translateX(-50%);transform-origin:left top;background:#A8261F;color:#fff;padding:8px 14px;border-radius:0 0 12px 12px;font-size:12px;font-weight:700;letter-spacing:.06em}
 
 /* footer */
 .foot{background:var(--cocoa);color:var(--paper);padding:80px 0 120px;margin-top:40px}
@@ -389,6 +408,7 @@ a{color:inherit}
 <body>
 <div class="loader" id="loader" aria-hidden="true"><div class="in"><img src="assets/pod.png" alt=""><b>Now scooping</b><div class="dots"><i></i><i></i><i></i></div><small>AK Bowl protein cups</small></div></div>
 
+<div class="ann" id="ann" role="status" hidden></div>
 <header class="hd" id="hd">
   <a class="logo" href="#top" aria-label="AK Bowl home"><img src="assets/logo-brown.png" alt="AK Brand · Healthy Eats" width="700" height="353"></a>
   <nav aria-label="Main"><a href="#flavors">Flavors</a><a href="#box">The Box</a><a href="#inside">Inside</a><a href="#wholesale">Wholesale</a></nav>
@@ -413,9 +433,9 @@ a{color:inherit}
     <p class="script">Healthy Eats</p>
     <h1><span class="ln"><span style="--i:0">Be strong.</span></span><span class="ln"><span style="--i:1">Be unique.</span></span><span class="ln"><span style="--i:2">Be <em>healthy.</em></span></span></h1>
     <p class="lead">Protein dessert cups with <b>up to 40&nbsp;g protein</b> and <b>no added sugar</b>. Ten flavors, one AK Bowl.</p>
-    <div class="cta"><a class="btn acc" href="#flavors">Pick your flavor · $3</a><a class="btn ghost" href="#box">10 cups · $25</a></div>
+    <div class="cta"><a class="btn acc" href="#flavors"><span>Pick your flavor · <span data-k="cup">$3</span></span></a><a class="btn ghost" href="#box"><span><span data-k="n">10</span> cups · <span data-k="box">$25</span></span></a></div>
   </div>
-  <div class="ring" aria-hidden="true"><svg viewBox="0 0 150 150"><defs><path id="circ" d="M75 75 m-60 0 a60 60 0 1 1 120 0 a60 60 0 1 1 -120 0"/></defs><text><textPath href="#circ">BE STRONG • BE UNIQUE • BE HEALTHY • </textPath></text></svg><b><span>$3<small>A CUP</small></span></b></div>
+  <div class="ring" aria-hidden="true"><svg viewBox="0 0 150 150"><defs><path id="circ" d="M75 75 m-60 0 a60 60 0 1 1 120 0 a60 60 0 1 1 -120 0"/></defs><text><textPath href="#circ">BE STRONG • BE UNIQUE • BE HEALTHY • </textPath></text></svg><b><span><span data-k="cup">$3</span><small>A CUP</small></span></b></div>
   <aside class="now" aria-live="polite" id="now"></aside>
   <div class="rail" id="rail" role="group" aria-label="Choose a flavor to see it in 3D"></div>
   <p class="demo-tag">Concept demo · not the official AK Bowl site</p>
@@ -425,7 +445,7 @@ a{color:inherit}
 
 <section class="sec" id="flavors" aria-labelledby="flavH">
   <div class="wrap">
-    <div class="sec-head reveal"><div><p class="eyebrow">The lineup</p><h2 class="h2" id="flavH">Pick your <em>craving.</em></h2></div><p>Every cup: a crunchy biscuit base, a thick protein cream and a chocolate finish. No added sugar. $3 each.</p></div>
+    <div class="sec-head reveal"><div><p class="eyebrow">The lineup</p><h2 class="h2" id="flavH">Pick your <em>craving.</em></h2></div><p>Every cup: a crunchy biscuit base, a thick protein cream and a chocolate finish. No added sugar. <span data-k="cup">$3</span> each.</p></div>
     <div class="tabs reveal" role="group" aria-label="Sort flavors">
       <button class="tab" type="button" data-sort="all" aria-pressed="true">All flavors</button>
       <button class="tab" type="button" data-sort="p" aria-pressed="false">Most protein</button>
@@ -440,15 +460,15 @@ a{color:inherit}
   <div class="wrap">
     <div class="reveal">
       <p class="eyebrow">The Box</p>
-      <h2 class="h2" id="boxH">Ten cups.<br><em>Any mix.</em></h2>
-      <div class="deal"><b>$25</b><s>$30</s></div>
-      <p class="lead">Fill all 10 spots with your favorites, or let us surprise you. <b>Free delivery</b> on every box.</p>
-      <div class="perks"><span>Save $5</span><span>Free delivery</span><span>Mix any flavors</span></div>
+      <h2 class="h2" id="boxH"><span data-k="nw" data-cap="1">Ten</span> cups.<br><em>Any mix.</em></h2>
+      <div class="deal"><b data-k="box">$25</b><s data-k="full">$30</s></div>
+      <p class="lead">Fill all <span data-k="n">10</span> spots with your favorites, or let us surprise you. <b>Free delivery</b> on every box.</p>
+      <div class="perks"><span class="perk-save">Save <span data-k="save">$5</span></span><span>Free delivery</span><span>Mix any flavors</span></div>
     </div>
     <div class="tray reveal">
       <div class="slots" id="slots" aria-live="polite"></div>
       <div class="prog"><i id="progBar"></i></div>
-      <div class="trayinfo"><span id="trayTxt">0 of 10 cups</span><span><b>$25</b> · free delivery</span></div>
+      <div class="trayinfo"><span id="trayTxt">0 of 10 cups</span><span><b data-k="box">$25</b> · free delivery</span></div>
       <div class="mini-flavors" id="mfl" role="group" aria-label="Add a flavor to the box"></div>
       <div class="acts"><button class="btn" type="button" id="boxAdd" disabled>Add box to order</button><button class="btn ghost" type="button" id="boxRand">Surprise me</button><button class="btn ghost" type="button" id="boxClear">Clear</button></div>
     </div>
@@ -526,6 +546,8 @@ a{color:inherit}
 <div class="sr" id="live" aria-live="polite"></div>
 
 <script src="data.js"></script>
+<script>/* admin preview: ?preview=1 shows the unpublished draft saved by admin.html in this browser */
+try { if (/[?&]preview=1/.test(location.search)) { const d = JSON.parse(localStorage.getItem('akbowl-admin-draft') || 'null'); if (d && d.config) { window.AK = d.config; window.AK._photos = d.photos || {}; window.AK_PREVIEW = 1; } } } catch (e) {}</script>
 <script src="app.js"></script>
 <script type="module" src="scene.js"></script>
 </body>
