@@ -91,10 +91,6 @@ $('#loginForm').addEventListener('submit', async e => {
   } catch (er) { session = null; $('#loginErr').textContent = er.message; }
   $('#loginBtn').disabled = false; $('#loginBtn').textContent = 'Sign in';
 });
-$('#demoBtn').onclick = () => {
-  demo = true; session = null; cfg = clone(window.AK); base = JSON.stringify(cfg); dataText = '';
-  start();
-};
 function start() {
   loadDraft();
   $('#login').hidden = true; $('#app').hidden = false;

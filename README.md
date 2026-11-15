@@ -58,7 +58,7 @@ How it works: all the settings live in `data.js` between the `AK-CONFIG` markers
 
 - **To change the password:** edit `ADMIN_PASSWORD` in Vercel and redeploy. Everyone gets signed out.
 - **When the key expires (after 1 year):** make a new one, replace `GITHUB_TOKEN`, and redeploy.
-- The GitHub key never reaches the browser; only the server function uses it. "Look around without signing in" opens a demo of the panel where nothing is saved, which is handy for showing the client.
+- The GitHub key never reaches the browser; only the server function uses it.
 
 ## Going live (after they say yes)
 
