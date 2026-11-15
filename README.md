@@ -1,9 +1,9 @@
-# AK Bowl: protein cups website (concept demo)
+# AK Bowl: protein cups website
 
 A 3D order website for **AK Bowl** (AK Brand · Healthy Eats, Instagram [@ak__bowl](https://www.instagram.com/ak__bowl/)).
 It's plain HTML/CSS/JS with no build step. The 3D cup uses Three.js, and Three.js and the fonts are bundled locally in `assets/`.
 
-> **Concept demo.** The site is marked `noindex` and carries a "Concept demo" label. **Orders are live**: checkout opens WhatsApp to AK Bowl (70 426 400) with the whole order typed out, and the customer taps Send.
+> **Live.** Orders go to AK Bowl on WhatsApp (70 426 400) and into the owner panel's Orders tab. The owner manages everything at `/admin.html`.
 
 ## What's inside
 
@@ -66,9 +66,12 @@ How orders get saved: when a customer taps "Send order on WhatsApp", the site al
 - **When the key expires (after 1 year):** make a new one, replace `GITHUB_TOKEN`, and redeploy.
 - The GitHub key never reaches the browser; only the server function uses it.
 
-## Going live (after they say yes)
+## Launch checklist
 
-1. WhatsApp orders are already on (`ORDER_WHATSAPP = '96170426400'` in `app.js`; set it to `''` for demo mode).
-2. `index.html`: remove the `noindex` meta tag, the "Concept demo" tag and the footer disclaimer.
+- [x] Demo labels and the noindex tag removed. `admin.html` and `/api` stay hidden from search (`robots.txt`, `vercel.json`).
+- [ ] Vercel environment variables set: `ADMIN_PASSWORD`, `GITHUB_TOKEN`, and the Upstash Redis database connected.
+- [ ] One real test order placed from a phone, checked in WhatsApp and in the Orders tab, then deleted.
+- [ ] Owner checks every flavor's nutrition in the panel (see "Confirm with AK Bowl" above).
+- [ ] Optional: a custom domain (Vercel → Settings → Domains), then put the link in the Instagram bio.
 
 Fonts (League Spartan, Montserrat, Pinyon Script) are under the SIL Open Font License, via Fontsource. Three.js is MIT-licensed.

@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>AK Bowl · High-protein dessert cups</title>
 <meta name="description" content="AK Bowl protein cups: up to 40 g protein, no added sugar. 10 flavors. $3 a cup, 10 cups for $25 with free delivery.">
-<!-- Concept demo: keep out of search results until AK Bowl approves. Remove at launch. -->
-<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AK Bowl">
+<meta property="og:title" content="AK Bowl · High-protein dessert cups">
+<meta property="og:description" content="Up to 40 g protein, no added sugar. 10 flavors. Order on WhatsApp: 10 cups for $25 with free delivery.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="apple-touch-icon" href="assets/pod.png">
 <meta name="theme-color" content="#EFE3CF">
 <link rel="icon" href="assets/pod.png">
 <link rel="preload" href="assets/fonts/league-spartan-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -134,7 +138,6 @@ a{color:inherit}
 .ring.long b{font-size:30px}
 .ring b small{display:block;font-size:11px;letter-spacing:.2em;color:var(--cocoa);text-align:center;margin-top:-4px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.demo-tag{position:absolute;z-index:3;left:var(--gut);bottom:90px;font-size:11.5px;color:var(--cocoa2);opacity:.8}
 
 /* marquee */
 .mwrap{overflow:hidden;padding:14px 0}
@@ -266,6 +269,7 @@ body.has-ann .toast{bottom:100px}
 .promo input{flex:1;min-width:0;min-height:48px;padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--paper);font-size:16px;text-transform:uppercase}
 .promo button{height:48px;padding:0 18px;border-radius:14px;background:var(--cocoa);color:var(--paper);font-weight:700}
 .promo-msg{font-size:13px;color:#A8261F;margin-top:6px;min-height:1px}
+.privacy{font-size:12.5px;color:var(--cocoa2);margin-top:4px}
 .closedmsg{font-size:14px;color:#A8261F;font-weight:600;margin-bottom:10px;text-align:center}
 .preview-pill{position:fixed;left:16px;top:50%;z-index:140;transform:rotate(-90deg) translateX(-50%);transform-origin:left top;background:#A8261F;color:#fff;padding:8px 14px;border-radius:0 0 12px 12px;font-size:12px;font-weight:700;letter-spacing:.06em}
 
@@ -362,7 +366,6 @@ body.has-ann .toast{bottom:100px}
   .now{display:none}
   .ring{left:auto;right:10px;top:74px;width:92px;height:92px}
   .ring b{font-size:28px}
-  .demo-tag{bottom:96px}
   .box .wrap,.layers .wrap,.ws{grid-template-columns:1fr}
   .sheet{grid-template-columns:1fr;top:auto;bottom:0;left:0;width:100%;max-height:92svh;border-radius:30px 30px 0 0;transform:translateY(100%);opacity:1}
   .sheet.on{transform:none}
@@ -438,7 +441,6 @@ body.has-ann .toast{bottom:100px}
   <div class="ring" aria-hidden="true"><svg viewBox="0 0 150 150"><defs><path id="circ" d="M75 75 m-60 0 a60 60 0 1 1 120 0 a60 60 0 1 1 -120 0"/></defs><text><textPath href="#circ">BE STRONG • BE UNIQUE • BE HEALTHY • </textPath></text></svg><b><span><span data-k="cup">$3</span><small>A CUP</small></span></b></div>
   <aside class="now" aria-live="polite" id="now"></aside>
   <div class="rail" id="rail" role="group" aria-label="Choose a flavor to see it in 3D"></div>
-  <p class="demo-tag">Concept demo · not the official AK Bowl site</p>
 </section>
 
 <div class="mwrap" aria-hidden="true"><div class="marquee"><div class="tr" id="mq"></div></div></div>
@@ -526,7 +528,7 @@ body.has-ann .toast{bottom:100px}
     <img src="assets/logo-cream.png" alt="AK Brand · Healthy Eats" loading="lazy" width="700" height="353">
     <p class="slogan">BE STRONG · BE UNIQUE · BE HEALTHY</p>
     <div class="links"><a id="igFoot" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg>@ak__bowl</a><a id="waFoot" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20l1.3-3.9A8.5 8.5 0 1 1 8.6 19z"/><path d="M9.2 9.3c.3 2.3 2.2 4.3 4.6 4.8l1-1.2 1.9.8"/></svg>WhatsApp 70 426 400</a><a href="#flavors">Order now</a></div>
-    <small>Concept demo built as a proposal for AK Bowl. Orders go to AK Bowl on WhatsApp. Product names belong to their owners.</small>
+    <small>© <span id="yr">2026</span> AK Bowl · Healthy Eats. Prices in US dollars. Orders are confirmed on WhatsApp.</small>
   </div>
 </footer>
 

@@ -243,7 +243,8 @@ function renderCart() {
       <div class="field"><label for="cName">Your name</label><input id="cName" name="name" autocomplete="name" value="${esc(form.name)}"><span class="err" id="eName"></span></div>
       <div class="field"><label for="cPhone">Phone</label><input id="cPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="70 123 456" value="${esc(form.phone)}"><span class="err" id="ePhone"></span></div>
       <div class="field"><label for="cAddr">Delivery address</label><input id="cAddr" name="address" autocomplete="street-address" placeholder="Area, street, building" value="${esc(form.address)}"><span class="err" id="eAddr"></span></div>
-      <div class="field"><label for="cNotes">Notes (optional)</label><textarea id="cNotes" name="notes" rows="3" placeholder="Best time to deliver, floor…">${esc(form.notes)}</textarea></div></form>`;
+      <div class="field"><label for="cNotes">Notes (optional)</label><textarea id="cNotes" name="notes" rows="3" placeholder="Best time to deliver, floor…">${esc(form.notes)}</textarea></div>
+      <p class="privacy">🔒 We only use your details to prepare and deliver your order.</p></form>`;
     foot.innerHTML = `<button class="gobtn" type="submit" form="ckForm"><span>Send order on WhatsApp</span><span>${money(p.total)}</span></button><button class="gobtn ghost" type="button" id="ckBack">Back</button>`;
     const f = $('#ckForm');
     f.addEventListener('input', () => { form = Object.fromEntries(new FormData(f)); try { localStorage.setItem('akbowl-details', JSON.stringify(form)); } catch (e) {} });
@@ -368,4 +369,5 @@ addEventListener('scroll', onScroll, { passive: true }); addEventListener('resiz
   if (window.AK_PREVIEW) { const b = document.createElement('div'); b.className = 'preview-pill'; b.textContent = 'Preview · not published yet'; document.body.appendChild(b); }
 })();
 
+if ($('#yr')) $('#yr').textContent = new Date().getFullYear();
 setFlavor(BUY()[0] || FL[0]); updateCounts(); onScroll();
