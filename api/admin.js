@@ -88,7 +88,7 @@ module.exports = async (req, res) => {
       return send(res, 200, { ok: true, commit: c.sha.slice(0, 7) });
     }
     if (body.action === 'orders') {
-      if (!db.hasDb()) return send(res, 200, { configured: false, orders: [] });
+      if (!db.hasDb()) return send(res, 200, { configured: false, orders: [], found: db.dbHint() });
       const [ids] = await db.pipe([['ZREVRANGE', db.K.list, 0, 499]]);
       if (!ids.length) return send(res, 200, { configured: true, orders: [] });
       const [raw] = await db.pipe([['MGET', ...ids.map(db.K.order)]]);

@@ -28,6 +28,7 @@ let base = '';            // published config as JSON (to detect changes)
 let cfg = null;           // the config being edited
 let files = {};           // new photos waiting to publish: { pid: { full, sm, ext } } (data URLs)
 let page = 'orders';
+let dbFound = [];
 let orders = null, ordersOn = true, ofilter = 'new', oq = '', knownIds = null;
 const PUBLISHED = {};      // photos published this session (shown from memory until Vercel redeploys)
 
@@ -239,7 +240,7 @@ async function refreshOrders(first) {
   if (!session) return;
   try {
     const j = await api({ action: 'orders', session });
-    ordersOn = j.configured; orders = j.orders;
+    ordersOn = j.configured; orders = j.orders; dbFound = j.found || [];
     const ids = new Set(orders.map(o => o.id));
     if (knownIds && !first) { const fresh = orders.filter(o => !knownIds.has(o.id)); if (fresh.length) { toast(`🔔 ${fresh.length} new order${fresh.length > 1 ? 's' : ''}!`); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} } }
     knownIds = ids; badge();
@@ -256,7 +257,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) refr
 PAGES.orders = function () {
   if (!orders) { $('#page').innerHTML = '<h2>Orders</h2><p class="lead">Loading orders…</p>'; return; }
   if (!ordersOn) {
-    $('#page').innerHTML = `<h2>Orders</h2><div class="card"><h3>Connect the orders database</h3><p class="hint" style="margin-top:6px">Order tracking needs a free database. Ask your web developer to connect it (Vercel → Storage → Upstash for Redis → Connect to this project → Redeploy). After that, every website order shows up here.</p></div>`; return;
+    $('#page').innerHTML = `<h2>Orders</h2><div class="card"><h3>Connect the orders database</h3><p class="hint" style="margin-top:6px">Order tracking needs a free database. Ask your web developer to connect it (Vercel → Storage → Upstash for Redis → Connect to this project → Redeploy). After that, every website order shows up here.</p><p class="hint" style="margin-top:10px;font-size:12px">Database settings found on the server: ${dbFound.length ? dbFound.map(esc).join(', ') : 'none yet (redeploy after connecting the database)'}</p></div>`; return;
   }
   const live = orders.filter(o => o.status !== 'cancelled');
   const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
