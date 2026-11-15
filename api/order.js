@@ -29,6 +29,9 @@ module.exports = async (req, res) => {
     const [count] = await pipe([['INCR', ipKey]]);
     if (count === 1) await pipe([['EXPIRE', ipKey, 3600]]);
     if (count > 15 && !b.test) return send(res, 429, { error: 'Too many orders' });
+    // the same order retried from a phone is only saved once
+    const cid = String(b.cid || '').replace(/[^a-z0-9]/gi, '').slice(0, 24);
+    if (cid) { const [fresh] = await pipe([['SET', 'ak:cid:' + cid, '1', 'NX', 'EX', 172800]]); if (!fresh) return send(res, 200, { ok: true, duplicate: true }); }
     const at = Date.now(), id = at.toString(36) + crypto.randomBytes(3).toString('hex');
     await pipe([['SET', K.order(id), JSON.stringify({ id, at, status: 'new', ...o })], ['ZADD', K.list, at, id]]);
     return send(res, 200, { ok: true, id });

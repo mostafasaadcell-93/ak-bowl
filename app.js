@@ -252,8 +252,10 @@ function renderCart() {
     $('#ckBack').onclick = () => { view = 'list'; renderCart(); };
   }
 }
-function placeOrder(e) {
+let placing = false;
+async function placeOrder(e) {
   e.preventDefault();
+  if (placing) return;
   const eN = !form.name.trim(), eP = String(form.phone).replace(/\D/g, '').length < 7, eA = !form.address.trim();
   $('#eName').textContent = eN ? 'Tell us your name.' : ''; $('#ePhone').textContent = eP ? 'We need a phone number to deliver.' : ''; $('#eAddr').textContent = eA ? 'Where should we deliver?' : '';
   if (eN || eP || eA) { (eN ? $('#cName') : eP ? $('#cPhone') : $('#cAddr')).focus(); return; }
@@ -261,13 +263,14 @@ function placeOrder(e) {
   const p = price(), no = 'AK-' + Math.floor(1000 + Math.random() * 9000);
   const items = FL.filter(f => cart[f.id]).map(f => `🥤 ${cart[f.id]} × ${f.name} (${money(cart[f.id] * AK.price)})`).join('\n');
   const txt = `*New AK Bowl order* ${no}\n\n${items}\n\n${p.n} cup${p.n > 1 ? 's' : ''}: ${money(p.full)}${p.save > 0 ? `\nBox deal (${p.boxes} × ${AK.box.size} for ${money(AK.box.price)}): −${money(p.save)}` : ''}${p.disc ? `\nPromo ${promo.code} (−${promo.off}%): −${money(p.disc)}` : ''}\nDelivery: ${p.fee == null && !p.boxes ? 'please confirm the fee' : feeText(p)}\n*Total: ${money(p.total)}*\n\n👤 ${form.name.trim()}\n📞 ${form.phone.trim()}\n📍 ${form.address.trim()}${form.notes.trim() ? '\n📝 ' + form.notes.trim() : ''}`;
-  // save a copy for the owner's order tracker (admin.html → Orders). Fire-and-forget: WhatsApp opens no matter what.
-  if (!window.AK_PREVIEW) try {
-    fetch('api/order', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-      no, name: form.name.trim(), phone: form.phone.trim(), address: form.address.trim(), notes: form.notes.trim(),
-      items: FL.filter(f => cart[f.id]).map(f => ({ id: f.id, name: f.name, qty: cart[f.id], price: AK.price })),
-      full: p.full, save: p.save, promo: p.disc ? { code: promo.code, off: promo.off, disc: p.disc } : null, fee: p.boxes ? 0 : p.fee, total: p.total }) }).catch(() => {});
-  } catch (er) {}
+  // 1) save a copy for the owner's Orders tab FIRST (phones freeze the page once WhatsApp opens), 2) then open WhatsApp
+  placing = true;
+  const btn = $('#cartFoot button[type=submit]'); if (btn) { btn.disabled = true; btn.firstElementChild.textContent = 'Sending…'; }
+  if (!window.AK_PREVIEW) await saveOrder({
+    cid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), no, name: form.name.trim(), phone: form.phone.trim(), address: form.address.trim(), notes: form.notes.trim(),
+    items: FL.filter(f => cart[f.id]).map(f => ({ id: f.id, name: f.name, qty: cart[f.id], price: AK.price })),
+    full: p.full, save: p.save, promo: p.disc ? { code: promo.code, off: promo.off, disc: p.disc } : null, fee: p.boxes ? 0 : p.fee, total: p.total });
+  placing = false;
   if (ORDER_WHATSAPP) openWA(txt);
   view = 'done';
   $('#cartBody').innerHTML = `<div class="done"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"/><path pathLength="1" d="M30 52l13 13 27-29"/></svg><h3>Almost there!</h3><p>Your order <b>${no}</b> (${p.n} cup${p.n > 1 ? 's' : ''}, ${money(p.total)}) is ready in WhatsApp. <b>Just tap Send</b> and AK Bowl will confirm.</p>${ORDER_WHATSAPP ? `<a class="gobtn" style="margin-top:22px;text-decoration:none" href="${waLink(txt)}" target="_blank" rel="noopener"><span>WhatsApp didn't open?</span><span>Open it</span></a>` : '<div class="demo">Demo mode: this order was not sent to AK Bowl.</div>'}</div>`;
@@ -275,6 +278,27 @@ function placeOrder(e) {
   cart = {}; save(); promo = null; try { localStorage.removeItem('akbowl-promo'); } catch (er) {} FL.forEach(f => renderCtl(f.id)); updateCounts();
   $('#newOrder').onclick = () => { view = 'list'; closeAll(); };
 }
+
+/* order copies for the tracker: sent before WhatsApp opens; if the network fails they wait on this
+   phone and are retried on the next visit (the server ignores duplicates by cid) */
+const PENDING = 'akbowl-pending-orders';
+async function sendOrder(o, ms) {
+  const ctl = 'AbortController' in window ? new AbortController() : null, t = ctl && setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch('api/order', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(o), ...(ctl ? { signal: ctl.signal } : {}) });
+    return r.ok || r.status === 400 || r.status === 503;   // saved, or nothing to retry (bad data / tracker not set up)
+  } catch (e) { return false; } finally { if (t) clearTimeout(t); }
+}
+async function saveOrder(o) {
+  if (await sendOrder(o, 3000)) return;
+  try { const q = JSON.parse(localStorage.getItem(PENDING) || '[]'); q.push(o); localStorage.setItem(PENDING, JSON.stringify(q.slice(-10))); } catch (e) {}
+}
+(async function retryPending() {
+  let q = []; try { q = JSON.parse(localStorage.getItem(PENDING) || '[]'); } catch (e) {}
+  if (!q.length) return;
+  const left = []; for (const o of q) if (!(await sendOrder(o, 6000))) left.push(o);
+  try { left.length ? localStorage.setItem(PENDING, JSON.stringify(left)) : localStorage.removeItem(PENDING); } catch (e) {}
+})();
 
 /* ================= PANELS ================= */
 let openId = null, returnFocus = null;
