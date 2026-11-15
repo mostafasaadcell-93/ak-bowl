@@ -13,7 +13,7 @@ It's plain HTML/CSS/JS with no build step. The 3D cup uses Three.js, and Three.j
 | `scene.js` | 3D cup: clear cup with a crumb base, protein cream and chocolate topping. The lid art and calorie sleeve are drawn live for each flavor, and the lid flips when the flavor changes. You can drag to spin the cup. |
 | `app.js` | Flavor cards (sortable), the 10-cup box builder, "inside the cup" layers, compare bars, the flavor sheet, cart, checkout and the wholesale form |
 | `data.js` | All the settings: flavors, prices, box deal, delivery fee, promo codes, banner, open/closed, WhatsApp. Edited from the owner panel |
-| `admin.html`, `admin.js` | The owner panel (see below) |
+| `admin.html`, `admin.js`, `api/admin.js` | The owner panel and its password-protected server function (see below) |
 | `assets/photos` | AK Bowl's own photos, cropped from their Instagram posts |
 
 ## Prices (placeholder, confirm with the client)
@@ -33,7 +33,7 @@ It's plain HTML/CSS/JS with no build step. The 3D cup uses Three.js, and Three.j
 
 ## Owner panel (`/admin.html`)
 
-The owner opens **yoursite.vercel.app/admin.html** (on a phone or laptop), signs in once, and can:
+The owner opens **yoursite.vercel.app/admin.html** (on a phone or laptop), signs in with her **password**, and can:
 
 | Section | What she can change |
 |---|---|
@@ -45,17 +45,20 @@ The owner opens **yoursite.vercel.app/admin.html** (on a phone or laptop), signs
 
 **Preview** shows the website with the unpublished changes, in that browser only. **Publish** saves everything as one commit to this repo, and Vercel redeploys in about a minute.
 
-How it works: all the settings live in `data.js` between the `AK-CONFIG` markers. The panel reads that file through the GitHub API, edits it, and commits it back with any new photos. There's no server or database, and nothing costs money.
+How it works: all the settings live in `data.js` between the `AK-CONFIG` markers. The panel talks to a small Vercel Function (`api/admin.js`). The function checks the password, then reads and commits `data.js` (and any new photos) through the GitHub API in one commit, and Vercel redeploys. There's no database and it costs $0.
 
-### Creating the access key (one time, ~2 minutes)
+### Setup (one time, about 3 minutes)
 
-1. GitHub → **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
-2. Name: `AK Bowl owner panel`. Expiration: 1 year (set a reminder to renew it).
-3. **Repository access → Only select repositories →** `ak-bowl`.
-4. **Permissions → Repository permissions → Contents: Read and write**.
-5. Generate it, copy the key (it starts with `github_pat_`) and paste it into the panel's sign-in screen on the owner's phone. It stays signed in on that device.
+1. **Make a GitHub key.** Go to https://github.com/settings/personal-access-tokens/new. Name it `AK Bowl owner panel`, set it to expire in 1 year, choose **Only select repositories → `ak-bowl`**, and set **Repository permissions → Contents: Read and write**. Generate it and copy it.
+2. **Put it in Vercel, not on anyone's phone.** Vercel → the ak-bowl project → **Settings → Environment Variables**, add:
+   - `GITHUB_TOKEN` = the key from step 1
+   - `ADMIN_PASSWORD` = the owner's password (10+ characters, e.g. `AkBowl-Cups-2026!`)
+3. **Redeploy:** Vercel → **Deployments → ⋯ on the latest → Redeploy**. Environment variables only apply to new deployments.
+4. The owner opens `/admin.html` and signs in with the password. She stays signed in for 30 days on that device.
 
-The key can only touch this one repository. If it's ever shared by mistake, delete it on GitHub and make a new one. Without signing in, "Look around without signing in" opens a demo of the panel where nothing is saved, which is handy for showing the client.
+- **To change the password:** edit `ADMIN_PASSWORD` in Vercel and redeploy. Everyone gets signed out.
+- **When the key expires (after 1 year):** make a new one, replace `GITHUB_TOKEN`, and redeploy.
+- The GitHub key never reaches the browser; only the server function uses it. "Look around without signing in" opens a demo of the panel where nothing is saved, which is handy for showing the client.
 
 ## Going live (after they say yes)
 

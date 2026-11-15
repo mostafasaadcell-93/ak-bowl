@@ -188,13 +188,10 @@ h1,h2,h3{font-family:var(--spartan);font-weight:900;letter-spacing:-.02em;line-h
     <h1>Owner panel</h1>
     <p class="s">Change flavors, prices and promos. Your website updates in about a minute.</p>
     <form id="loginForm" novalidate>
-      <div class="field"><label for="key">Access key</label><input id="key" type="password" autocomplete="current-password" placeholder="Paste your access key"></div>
-      <details><summary>Advanced</summary>
-        <div class="field"><label for="repo">Website repository</label><input id="repo" value="mostafasaadcell-93/ak-bowl" autocomplete="off" spellcheck="false"></div>
-        <div class="field"><label for="branch">Branch</label><input id="branch" value="main" autocomplete="off" spellcheck="false"></div>
-      </details>
+      <div class="field"><label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" placeholder="Your owner password"></div>
       <p class="err" id="loginErr"></p>
       <button class="btn" type="submit" style="width:100%;margin-top:14px" id="loginBtn">Sign in</button>
+      <p class="s" style="font-size:12.5px;margin:12px 0 0">You'll stay signed in on this device for 30 days.</p>
     </form>
     <button class="alt" type="button" id="demoBtn">Look around without signing in (changes won't be saved)</button>
   </div>

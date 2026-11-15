@@ -1,15 +1,16 @@
 /* AK Bowl owner panel.
    Reads the website settings (data.js), lets the owner edit them, and publishes by committing
    data.js (+ any new photos) to the website's GitHub repo in ONE commit. Vercel then redeploys
-   the site automatically (about a minute). No server, no database.
-   Sign-in uses a GitHub fine-grained access key limited to this repo (Contents: read & write). */
+   the site automatically (about a minute).
+   The owner signs in with a normal password. The GitHub key lives only on the server (api/admin.js,
+   a Vercel Function), so it never reaches anyone's phone. */
 'use strict';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const money = n => '$' + (Number.isInteger(+n) ? +n : (+n).toFixed(2));
 const clone = o => JSON.parse(JSON.stringify(o));
-const AUTH_KEY = 'akbowl-admin-auth', DRAFT_KEY = 'akbowl-admin-draft';
+const SESSION_KEY = 'akbowl-admin-session', DRAFT_KEY = 'akbowl-admin-draft';
 const IC = {
   up: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 10l4.5-4.5 4.5 4.5"/></svg>',
   down: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6l4.5 4.5 4.5-4.5"/></svg>',
@@ -20,7 +21,7 @@ const IC = {
 };
 
 /* ================= STATE ================= */
-let auth = null;          // { token, repo, branch, login, id } or null (demo)
+let session = null;       // signed session from api/admin (30 days), or null in demo mode
 let demo = false;
 let dataText = '';        // data.js as published (keeps its header comment)
 let base = '';            // published config as JSON (to detect changes)
@@ -55,60 +56,55 @@ function loadDraft() {
   } catch (e) {}
 }
 
-/* ================= GITHUB ================= */
+/* ================= SERVER (api/admin.js) ================= */
 const enc = s => { const b = new TextEncoder().encode(s); let out = ''; for (let i = 0; i < b.length; i += 0x8000) out += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(out); };
-const dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, '')), c => c.charCodeAt(0)));
-async function gh(path, opts = {}) {
-  const r = await fetch('https://api.github.com' + path, {
-    ...opts, cache: 'no-store',
-    headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + auth.token, 'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? { 'Content-Type': 'application/json' } : {}) },
-  });
-  if (!r.ok) {
-    let m = ''; try { m = (await r.json()).message; } catch (e) {}
-    const err = new Error(r.status === 401 ? 'That access key is not valid (or it expired).' : r.status === 403 || r.status === 404 ? 'This key can\'t reach the website repository. Check the repo name and that the key has "Contents: Read and write".' : (m || 'GitHub error ' + r.status));
-    err.status = r.status; throw err;
-  }
-  return r.status === 204 ? null : r.json();
+async function api(body) {
+  let r;
+  try { r = await fetch('api/admin', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
+  catch (e) { throw new Error('No internet connection. Try again.'); }
+  let j = {}; try { j = await r.json(); } catch (e) { j = { error: r.status === 404 ? 'The owner panel server isn\'t set up on this website yet.' : 'Something went wrong (' + r.status + ').' }; }
+  if (!r.ok) { const err = new Error(j.error || 'Something went wrong.'); err.status = r.status; throw err; }
+  return j;
 }
 const parseCfg = text => { const m = text.match(/\/\*AK-CONFIG-START\*\/([\s\S]*?)\/\*AK-CONFIG-END\*\//); if (!m) throw new Error('data.js is missing the AK-CONFIG markers.'); return JSON.parse(m[1]); };
 const buildDataJs = c => dataText.replace(/\/\*AK-CONFIG-START\*\/[\s\S]*?\/\*AK-CONFIG-END\*\//, () => '/*AK-CONFIG-START*/' + JSON.stringify(c, null, 1) + '/*AK-CONFIG-END*/');
-
-async function connect(a) {
-  auth = a;
-  const repo = await gh(`/repos/${a.repo}`);
-  if (!repo.permissions || !repo.permissions.push) throw new Error('This key can only read the website. It needs "Contents: Read and write".');
-  try { const u = await gh('/user'); auth.login = u.login; auth.id = u.id; } catch (e) { auth.login = a.repo.split('/')[0]; }
-  const f = await gh(`/repos/${a.repo}/contents/data.js?ref=${encodeURIComponent(a.branch)}`);
-  dataText = dec(f.content);
-  cfg = parseCfg(dataText); base = JSON.stringify(cfg); files = {};
+async function loadSettings() {
+  const j = await api({ action: 'load', session });
+  dataText = j.dataText; cfg = parseCfg(dataText); base = JSON.stringify(cfg); files = {};
+}
+function signedOut(msg) {
+  session = null; try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+  $('#app').hidden = true; $('#login').hidden = false; $('#loginErr').textContent = msg || '';
 }
 
 /* ================= LOGIN ================= */
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const token = $('#key').value.trim(), repo = $('#repo').value.trim().replace(/^https?:\/\/github.com\//, '').replace(/\/$/, ''), branch = $('#branch').value.trim() || 'main';
+  const password = $('#pw').value;
   $('#loginErr').textContent = '';
-  if (!token) { $('#loginErr').textContent = 'Paste your access key first.'; $('#key').focus(); return; }
+  if (!password) { $('#loginErr').textContent = 'Type your password first.'; $('#pw').focus(); return; }
   $('#loginBtn').disabled = true; $('#loginBtn').textContent = 'Signing in…';
-  try { await connect({ token, repo, branch }); try { localStorage.setItem(AUTH_KEY, JSON.stringify({ token, repo, branch })); } catch (er) {} start(); }
-  catch (er) { auth = null; $('#loginErr').textContent = er.message; }
+  try {
+    session = (await api({ action: 'login', password })).session;
+    try { localStorage.setItem(SESSION_KEY, session); } catch (er) {}
+    await loadSettings(); $('#pw').value = ''; demo = false; start();
+  } catch (er) { session = null; $('#loginErr').textContent = er.message; }
   $('#loginBtn').disabled = false; $('#loginBtn').textContent = 'Sign in';
 });
 $('#demoBtn').onclick = () => {
-  demo = true; auth = null; cfg = clone(window.AK); base = JSON.stringify(cfg); dataText = '';
+  demo = true; session = null; cfg = clone(window.AK); base = JSON.stringify(cfg); dataText = '';
   start();
 };
 function start() {
   loadDraft();
   $('#login').hidden = true; $('#app').hidden = false;
-  $('#whoTxt').textContent = demo ? 'Demo, changes are not saved' : `${auth.repo} · ${auth.branch}`;
+  $('#whoTxt').textContent = demo ? 'Demo, changes are not saved' : 'Signed in';
   go(page); changed();
 }
 (async function boot() {
-  let a = null; try { a = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch (e) {}
-  if (!a) return;
-  $('#key').value = a.token; $('#repo').value = a.repo; $('#branch').value = a.branch;
-  try { await connect(a); start(); } catch (e) { auth = null; $('#loginErr').textContent = e.message; }
+  try { session = localStorage.getItem(SESSION_KEY); } catch (e) {}
+  if (!session) return;
+  try { await loadSettings(); start(); } catch (e) { signedOut(e.status === 401 ? 'Please sign in again.' : e.message); }
 })();
 
 /* ================= NAV ================= */
@@ -120,7 +116,7 @@ function go(p) {
 const sw = (id, on, label, cls = '') => `<button type="button" class="sw ${cls}" role="switch" aria-checked="${!!on}" id="${id}" aria-label="${esc(label)}"></button>`;
 const photoSrc = f => !f.photo ? 'assets/photos/scoop-sm.webp' : files[f.photo] ? files[f.photo].sm : PUBLISHED[f.photo] || `assets/photos/${f.photo}-sm.${f.ext || 'webp'}`;
 const visible = () => cfg.flavors.filter(f => !f.hidden);
-function demoNote() { return demo ? '<p class="demo-note"><b>Demo mode.</b> Look around and try anything. To really change the website, sign in with the access key.</p>' : ''; }
+function demoNote() { return demo ? '<p class="demo-note"><b>Demo mode.</b> Look around and try anything. To really change the website, sign in with the owner password.</p>' : ''; }
 
 /* ================= PAGES ================= */
 const PAGES = {
@@ -221,14 +217,14 @@ const PAGES = {
       <div class="card"><h3>Instagram</h3><div class="field"><label for="ig">Profile link</label><input id="ig" type="url" value="${esc(cfg.instagram)}" placeholder="https://www.instagram.com/ak__bowl/"></div></div>
       <div class="card"><h3>Backup</h3><p class="hint">Download all your settings as a file, or restore them from one.</p>
         <div class="row" style="flex-wrap:wrap;margin-top:12px"><button class="btn ghost sm" type="button" id="dl">Download backup</button><label class="btn ghost sm" style="cursor:pointer">Restore backup<input type="file" accept="application/json,.json" id="ul" hidden></label><button class="btn ghost sm" type="button" id="discard">Discard unpublished changes</button></div></div>
-      <div class="card"><h3>Account</h3><p class="hint">${demo ? 'Not signed in (demo mode).' : `Signed in to <b>${esc(auth.repo)}</b>. Changes publish to the <b>${esc(auth.branch)}</b> branch.`}</p>
+      <div class="card"><h3>Account</h3><p class="hint">${demo ? 'Not signed in (demo mode).' : 'Signed in on this device. You stay signed in for 30 days.'}</p>
         <div class="row" style="margin-top:12px"><button class="btn ${demo ? '' : 'red'} sm" type="button" id="out">${demo ? 'Sign in' : 'Sign out on this device'}</button></div></div>`;
     $('#wa').oninput = e => { const d = e.target.value.replace(/\D/g, '').replace(/^961/, ''); $('#waErr').textContent = d.length >= 7 && d.length <= 8 ? '' : 'Lebanese numbers have 7 or 8 digits, e.g. 70 426 400.'; if (d.length >= 7 && d.length <= 8) { cfg.whatsapp = '961' + d; changed(); } };
     $('#ig').oninput = e => { cfg.instagram = e.target.value.trim(); changed(); };
     $('#dl').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' })); a.download = `ak-bowl-settings-${new Date().toISOString().slice(0, 10)}.json`; a.click(); };
     $('#ul').onchange = async e => { try { const c = JSON.parse(await e.target.files[0].text()); if (!Array.isArray(c.flavors) || !c.box) throw 0; cfg = c; changed(); toast('Backup restored. Publish to make it live.'); go('home'); } catch (er) { toast('That file is not an AK Bowl backup.'); } };
     $('#discard').onclick = () => { if (!dirty()) { toast('Nothing to discard'); return; } if (confirmDel('Throw away all changes you haven\'t published?')) { cfg = JSON.parse(base); files = {}; changed(); toast('Changes discarded'); PAGES.store(); } };
-    $('#out').onclick = () => { if (!demo && dirty() && !confirmDel('You have unpublished changes. Sign out anyway?')) return; try { localStorage.removeItem(AUTH_KEY); } catch (er) {} location.reload(); };
+    $('#out').onclick = () => { if (!demo && dirty() && !confirmDel('You have unpublished changes. Sign out anyway?')) return; try { localStorage.removeItem(SESSION_KEY); } catch (er) {} location.reload(); };
   },
 };
 const confirmDel = m => window.confirm(m);
@@ -350,32 +346,17 @@ $('#publishBtn').onclick = async () => {
   const box = $('#pubBox'), pub = $('#pub');
   pub.hidden = false;
   if (bad.length) { box.innerHTML = `<h3>Almost!</h3><p>Fix this first:</p><ul class="steps">${bad.map(x => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn" type="button" id="pubOk" style="margin-top:12px">OK</button>`; $('#pubOk').onclick = () => pub.hidden = true; return; }
-  if (demo) { box.innerHTML = `<h3>Demo mode</h3><p>In demo mode nothing is saved. Sign in with the access key to publish for real. Use <b>Preview</b> to see your changes on the website.</p><button class="btn" type="button" id="pubOk" style="margin-top:16px">Got it</button>`; $('#pubOk').onclick = () => pub.hidden = true; return; }
-  const steps = ['Saving new photos', 'Saving settings', 'Publishing to the website'];
+  if (demo) { box.innerHTML = `<h3>Demo mode</h3><p>In demo mode nothing is saved. Sign in with the owner password to publish for real. Use <b>Preview</b> to see your changes on the website.</p><button class="btn" type="button" id="pubOk" style="margin-top:16px">Got it</button>`; $('#pubOk').onclick = () => pub.hidden = true; return; }
+  const steps = ['Preparing photos and settings', 'Saving to the website', 'Publishing'];
   box.innerHTML = `<div class="spin"></div><h3>Publishing…</h3><ul class="steps">${steps.map((s, i) => `<li id="st${i}">${s}</li>`).join('')}</ul>`;
   const done = i => $('#st' + i).classList.add('done');
   try {
-    const R = `/repos/${auth.repo}`;
-    const ref = await gh(`${R}/git/ref/heads/${encodeURIComponent(auth.branch)}`);
-    const head = await gh(`${R}/git/commits/${ref.object.sha}`);
-    // keep the header comment of the latest data.js
-    try { const f = await gh(`${R}/contents/data.js?ref=${ref.object.sha}`); dataText = dec(f.content); } catch (e) {}
-    const tree = [];
-    for (const [pid, v] of Object.entries(files)) {
-      for (const [suffix, d] of [['', v.full], ['-sm', v.sm]]) {
-        const blob = await gh(`${R}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: d.split(',')[1], encoding: 'base64' }) });
-        tree.push({ path: `assets/photos/${pid}${suffix}.${v.ext}`, mode: '100644', type: 'blob', sha: blob.sha });
-      }
-    }
+    const up = [];
+    for (const [pid, v] of Object.entries(files)) for (const [suffix, d] of [['', v.full], ['-sm', v.sm]]) up.push({ path: `assets/photos/${pid}${suffix}.${v.ext}`, content: d.split(',')[1] });
+    const data = buildDataJs(cfg);
     done(0);
-    const blob = await gh(`${R}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: enc(buildDataJs(cfg)), encoding: 'base64' }) });
-    tree.push({ path: 'data.js', mode: '100644', type: 'blob', sha: blob.sha });
-    const t = await gh(`${R}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: head.tree.sha, tree }) });
-    done(1);
-    const who = auth.id ? { name: auth.login, email: `${auth.id}+${auth.login}@users.noreply.github.com` } : undefined;
-    const c = await gh(`${R}/git/commits`, { method: 'POST', body: JSON.stringify({ message: 'Owner panel: ' + summary(), tree: t.sha, parents: [ref.object.sha], ...(who ? { author: who, committer: who } : {}) }) });
-    await gh(`${R}/git/refs/heads/${encodeURIComponent(auth.branch)}`, { method: 'PATCH', body: JSON.stringify({ sha: c.sha }) });
-    done(2);
+    await api({ action: 'publish', session, data, files: up, message: summary() });
+    done(1); done(2);
     dataText = buildDataJs(cfg); base = JSON.stringify(cfg);
     // new photos are now in the repo; keep showing them from memory until the site redeploys
     Object.entries(files).forEach(([pid, v]) => { PUBLISHED[pid] = v.sm; }); files = {};
@@ -383,6 +364,7 @@ $('#publishBtn').onclick = async () => {
     box.innerHTML = `<div style="font-size:54px">🎉</div><h3>Published!</h3><p>Your website updates in about a minute. Refresh it to see the changes.</p><div class="row" style="justify-content:center;margin-top:18px;flex-wrap:wrap"><a class="btn ghost" href="./" target="_blank" rel="noopener">Open website</a><button class="btn" type="button" id="pubOk">Done</button></div>`;
     $('#pubOk').onclick = () => { pub.hidden = true; go(page); };
   } catch (e) {
+    if (e.status === 401) { pub.hidden = true; saveDraft(); signedOut('Please sign in again. Your changes are kept.'); return; }
     box.innerHTML = `<h3>Couldn't publish</h3><p>${esc(e.message)}</p><p class="hint" style="margin-top:8px">Your changes are still here. Check your internet and try again.</p><button class="btn" type="button" id="pubOk" style="margin-top:16px">OK</button>`;
     $('#pubOk').onclick = () => pub.hidden = true;
   }
