@@ -8,8 +8,12 @@
      GITHUB_BRANCH   optional, default "main"
 
    Actions (POST JSON): login {password} → {session} · load {session} → {dataText}
-                        publish {session, data, files:[{path, content(base64)}], message} → {ok} */
+                        publish {session, data, files:[{path, content(base64)}], message} → {ok}
+                        orders {session} → {configured, orders[]} · setStatus {session, id, status} · deleteOrder {session, id}
+   Orders need the free Upstash Redis database (Vercel → Storage), see api/_lib.js. */
 const crypto = require('crypto');
+const db = require('./_lib');
+const STATUSES = ['new', 'confirmed', 'delivered', 'cancelled'];
 
 const REPO = process.env.GITHUB_REPO || 'mostafasaadcell-93/ak-bowl';
 const BRANCH = process.env.GITHUB_BRANCH || 'main';
@@ -83,8 +87,27 @@ module.exports = async (req, res) => {
       await gh(`${R}/git/refs/heads/${encodeURIComponent(BRANCH)}`, { method: 'PATCH', body: JSON.stringify({ sha: c.sha }) });
       return send(res, 200, { ok: true, commit: c.sha.slice(0, 7) });
     }
+    if (body.action === 'orders') {
+      if (!db.hasDb()) return send(res, 200, { configured: false, orders: [] });
+      const [ids] = await db.pipe([['ZREVRANGE', db.K.list, 0, 499]]);
+      if (!ids.length) return send(res, 200, { configured: true, orders: [] });
+      const [raw] = await db.pipe([['MGET', ...ids.map(db.K.order)]]);
+      return send(res, 200, { configured: true, orders: raw.filter(Boolean).map(s => { try { return JSON.parse(s); } catch (e) { return null; } }).filter(Boolean) });
+    }
+    if (body.action === 'setStatus' || body.action === 'deleteOrder') {
+      if (!db.hasDb()) return send(res, 503, { error: 'Order tracking is not set up.' });
+      const id = String(body.id || '').replace(/[^a-z0-9]/g, '');
+      if (body.action === 'deleteOrder') { await db.pipe([['DEL', db.K.order(id)], ['ZREM', db.K.list, id]]); return send(res, 200, { ok: true }); }
+      if (!STATUSES.includes(body.status)) return send(res, 400, { error: 'Unknown status' });
+      const [s] = await db.pipe([['GET', db.K.order(id)]]);
+      if (!s) return send(res, 404, { error: 'Order not found' });
+      const o = JSON.parse(s); o.status = body.status; o.statusAt = Date.now();
+      await db.pipe([['SET', db.K.order(id), JSON.stringify(o)]]);
+      return send(res, 200, { ok: true, order: o });
+    }
     return send(res, 400, { error: 'Unknown action' });
   } catch (e) {
+    if (['orders', 'setStatus', 'deleteOrder'].includes(body.action)) return send(res, 502, { error: 'Couldn\'t reach the orders database. Try again in a minute.' });
     const auth = e.status === 401 || e.status === 403 || e.status === 404;
     return send(res, 502, { error: auth ? 'The website\'s GitHub key is not working (expired or missing permission). Ask your web developer to renew it.' : 'Couldn\'t reach GitHub. Try again in a minute.' });
   }

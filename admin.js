@@ -27,7 +27,8 @@ let dataText = '';        // data.js as published (keeps its header comment)
 let base = '';            // published config as JSON (to detect changes)
 let cfg = null;           // the config being edited
 let files = {};           // new photos waiting to publish: { pid: { full, sm, ext } } (data URLs)
-let page = 'home';
+let page = 'orders';
+let orders = null, ordersOn = true, ofilter = 'new', oq = '', knownIds = null;
 const PUBLISHED = {};      // photos published this session (shown from memory until Vercel redeploys)
 
 const dirty = () => JSON.stringify(cfg) !== base || Object.keys(files).length > 0;
@@ -95,7 +96,7 @@ function start() {
   loadDraft();
   $('#login').hidden = true; $('#app').hidden = false;
   $('#whoTxt').textContent = demo ? 'Demo, changes are not saved' : 'Signed in';
-  go(page); changed();
+  go(page); changed(); refreshOrders(true);
 }
 (async function boot() {
   try { session = localStorage.getItem(SESSION_KEY); } catch (e) {}
@@ -224,6 +225,98 @@ const PAGES = {
   },
 };
 const confirmDel = m => window.confirm(m);
+
+/* ================= ORDERS (tracker) ================= */
+const STAT = { new: 'New', confirmed: 'Confirmed', delivered: 'Delivered', cancelled: 'Cancelled' };
+const time12 = t => new Date(t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+function when(t) {
+  const d = new Date(t), now = new Date(), mins = Math.round((now - d) / 6e4);
+  const day = d.toDateString() === now.toDateString() ? 'Today' : new Date(now - 864e5).toDateString() === d.toDateString() ? 'Yesterday' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return `${day} ${time12(t)}${mins < 60 ? ` · ${mins < 1 ? 'just now' : mins + ' min ago'}` : ''}`;
+}
+const intl = p => { let d = String(p || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('0')) d = d.slice(1); return d.length <= 8 ? '961' + d : d; };
+async function refreshOrders(first) {
+  if (!session) return;
+  try {
+    const j = await api({ action: 'orders', session });
+    ordersOn = j.configured; orders = j.orders;
+    const ids = new Set(orders.map(o => o.id));
+    if (knownIds && !first) { const fresh = orders.filter(o => !knownIds.has(o.id)); if (fresh.length) { toast(`🔔 ${fresh.length} new order${fresh.length > 1 ? 's' : ''}!`); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} } }
+    knownIds = ids; badge();
+    if (page === 'orders' && $('#modal').hidden && document.activeElement !== $('#oq')) PAGES.orders();
+  } catch (e) { if (e.status === 401) signedOut('Please sign in again.'); }
+}
+function badge() {
+  const n = (orders || []).filter(o => o.status === 'new').length;
+  $('#ordBadge').hidden = !n; $('#ordBadge').textContent = n;
+  document.title = (n ? `(${n}) ` : '') + 'AK Bowl · Owner panel';
+}
+setInterval(() => { if (!document.hidden) refreshOrders(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshOrders(); });
+PAGES.orders = function () {
+  if (!orders) { $('#page').innerHTML = '<h2>Orders</h2><p class="lead">Loading orders…</p>'; return; }
+  if (!ordersOn) {
+    $('#page').innerHTML = `<h2>Orders</h2><div class="card"><h3>Connect the orders database</h3><p class="hint" style="margin-top:6px">Order tracking needs a free database. Ask your web developer to connect it (Vercel → Storage → Upstash for Redis → Connect to this project → Redeploy). After that, every website order shows up here.</p></div>`; return;
+  }
+  const live = orders.filter(o => o.status !== 'cancelled');
+  const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+  const sum = arr => arr.reduce((s, o) => s + (o.total || 0), 0);
+  const today = live.filter(o => o.at >= +midnight), week = live.filter(o => o.at >= Date.now() - 7 * 864e5);
+  const month = live.filter(o => o.at >= Date.now() - 30 * 864e5), fc = {};
+  month.forEach(o => o.items.forEach(i => { fc[i.name] = (fc[i.name] || 0) + i.qty; }));
+  const top = Object.entries(fc).sort((a, b) => b[1] - a[1]).slice(0, 5), topMax = top.length ? top[0][1] : 1;
+  const col = name => (cfg.flavors.find(f => f.name === name) || {}).lid || 'var(--cocoa)';
+  const counts = { all: orders.length }; Object.keys(STAT).forEach(s => counts[s] = orders.filter(o => o.status === s).length);
+  const q = oq.trim().toLowerCase().replace(/\s/g, '');
+  const shown = orders.filter(o => (ofilter === 'all' || o.status === ofilter) && (!q || (o.name + o.phone + o.no).toLowerCase().replace(/\s/g, '').includes(q)));
+  $('#page').innerHTML = `<div class="row" style="align-items:flex-end;margin-bottom:6px"><div class="grow"><h2>Orders</h2></div><button class="btn ghost sm" type="button" id="csv">Export</button></div>
+    <p class="lead">Orders from the website, newest first. Confirm them with the customer on WhatsApp, then mark them here. Updates every 30 seconds.</p>
+    <div class="grid4" style="margin-bottom:16px">
+      <div class="stat"><b>${today.length}</b><span>Orders today</span></div>
+      <div class="stat"><b>${money(sum(today))}</b><span>Sales today</span></div>
+      <div class="stat"><b>${week.length}</b><span>Orders, 7 days</span></div>
+      <div class="stat"><b>${money(sum(week))}</b><span>Sales, 7 days</span></div>
+    </div>
+    ${top.length ? `<div class="card"><h3>Top flavors, last 30 days</h3><div class="topfl">${top.map(([n, c]) => `<div><span>${esc(n)}</span><i style="--c:${col(n)};width:${Math.max(6, c / topMax * 100)}%"></i><span>${c}</span></div>`).join('')}</div></div>` : ''}
+    <div class="otabs" role="group" aria-label="Filter orders">${[['new', 'New'], ['confirmed', 'Confirmed'], ['delivered', 'Delivered'], ['cancelled', 'Cancelled'], ['all', 'All']].map(([k, l]) => `<button type="button" class="otab" data-of="${k}" aria-pressed="${ofilter === k}">${l}<small>${counts[k]}</small></button>`).join('')}</div>
+    <input class="osearch" id="oq" type="search" placeholder="Search name, phone or order number" value="${esc(oq)}">
+    <div class="olist" id="olist">${shown.length ? shown.map(orderCard).join('') : `<div class="empty-o"><b>${orders.length ? 'Nothing here' : 'No orders yet'}</b>${orders.length ? 'Try another filter.' : 'When customers order on the website, they show up here.'}</div>`}</div>`;
+  $$('[data-of]').forEach(b => b.onclick = () => { ofilter = b.dataset.of; PAGES.orders(); });
+  $('#oq').oninput = e => { oq = e.target.value; const pos = e.target.selectionStart; PAGES.orders(); const i = $('#oq'); i.focus(); i.setSelectionRange(pos, pos); };
+  $('#csv').onclick = exportCsv;
+  $('#olist').onclick = async e => {
+    const b = e.target.closest('[data-st]'), d = e.target.closest('[data-del]');
+    if (b) {
+      const o = orders.find(x => x.id === b.dataset.id), prev = o.status; o.status = b.dataset.st; badge(); PAGES.orders();
+      try { await api({ action: 'setStatus', session, id: o.id, status: o.status }); toast(`${o.no} → ${STAT[o.status]}`); }
+      catch (er) { o.status = prev; badge(); PAGES.orders(); toast(er.message); }
+    }
+    if (d && confirmDel('Delete this order forever?')) {
+      try { await api({ action: 'deleteOrder', session, id: d.dataset.del }); orders = orders.filter(x => x.id !== d.dataset.del); badge(); PAGES.orders(); toast('Order deleted'); } catch (er) { toast(er.message); }
+    }
+  };
+};
+function orderCard(o) {
+  const ph = o.phone.replace(/\D/g, ''), intlN = intl(o.phone);
+  const extras = [o.save ? `box deal −${money(o.save)}` : '', o.promo ? `promo ${esc(o.promo.code)} −${money(o.promo.disc)}` : '', `delivery ${o.fee == null ? 'to confirm' : o.fee ? money(o.fee) : 'free'}`].filter(Boolean).join(' · ');
+  const btn = (st, label, cls = '') => `<button class="btn sm ${cls}" type="button" data-st="${st}" data-id="${o.id}">${label}</button>`;
+  const acts = { new: btn('confirmed', '✓ Confirm', 'blue') + btn('cancelled', 'Cancel', 'ghost'), confirmed: btn('delivered', '🚚 Delivered', 'green') + btn('cancelled', 'Cancel', 'ghost'), delivered: btn('confirmed', 'Undo', 'ghost'), cancelled: btn('new', 'Restore', 'ghost') + `<button class="btn sm ghost" type="button" data-del="${o.id}" style="color:var(--bad);box-shadow:inset 0 0 0 1.5px var(--bad)">Delete</button>` }[o.status] || '';
+  return `<article class="ocard st-${o.status}"><div class="oh"><span class="pill">${STAT[o.status] || o.status}</span><b>${esc(o.no)}</b><span class="when">${when(o.at)}</span></div>
+    <div class="cust"><b>${esc(o.name)}</b><a href="tel:+${intlN}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>${esc(o.phone)}</a><a class="wa" href="https://wa.me/${intlN}?text=${encodeURIComponent(`Hi ${o.name}! About your AK Bowl order ${o.no}: `)}" target="_blank" rel="noopener">WhatsApp</a></div>
+    <p class="addr">📍 ${esc(o.address)}</p>
+    <ul class="oitems">${o.items.map(i => `<li>${i.qty} × ${esc(i.name)}</li>`).join('')}</ul>
+    <div class="otot">${o.cups} cup${o.cups > 1 ? 's' : ''} · <b>${money(o.total)}</b> <small>${extras}</small></div>
+    ${o.notes ? `<p class="onote">📝 ${esc(o.notes)}</p>` : ''}
+    <div class="oact">${acts}</div></article>`;
+}
+function exportCsv() {
+  const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = [['Date', 'Time', 'Order', 'Status', 'Name', 'Phone', 'Address', 'Items', 'Cups', 'Total $', 'Promo', 'Notes']].concat((orders || []).map(o => {
+    const d = new Date(o.at); return [d.toLocaleDateString('en-GB'), time12(o.at), o.no, STAT[o.status], o.name, o.phone, o.address, o.items.map(i => `${i.qty} x ${i.name}`).join(', '), o.cups, o.total, o.promo ? o.promo.code : '', o.notes];
+  }));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + rows.map(r => r.map(cell).join(',')).join('\n')], { type: 'text/csv' }));
+  a.download = `ak-bowl-orders-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+}
 
 /* ================= FLAVOR EDITOR ================= */
 const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'flavor';

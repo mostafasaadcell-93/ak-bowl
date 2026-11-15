@@ -14,6 +14,7 @@ It's plain HTML/CSS/JS with no build step. The 3D cup uses Three.js, and Three.j
 | `app.js` | Flavor cards (sortable), the 10-cup box builder, "inside the cup" layers, compare bars, the flavor sheet, cart, checkout and the wholesale form |
 | `data.js` | All the settings: flavors, prices, box deal, delivery fee, promo codes, banner, open/closed, WhatsApp. Edited from the owner panel |
 | `admin.html`, `admin.js`, `api/admin.js` | The owner panel and its password-protected server function (see below) |
+| `api/order.js`, `api/_lib.js` | Saves website orders for the Orders tab (Upstash Redis) |
 | `assets/photos` | AK Bowl's own photos, cropped from their Instagram posts |
 
 ## Prices (placeholder, confirm with the client)
@@ -37,6 +38,7 @@ The owner opens **yoursite.vercel.app/admin.html** (on a phone or laptop), signs
 
 | Section | What she can change |
 |---|---|
+| **Orders** | Every order placed on the website: customer, phone (tap to call or WhatsApp), address, cups, total, promo and notes. Status buttons **New → Confirmed → Delivered** (or Cancelled), today's and this week's sales, top flavors, search, export to Excel (CSV). New orders show a badge and refresh every 30 seconds |
 | **Today** | Pause or resume orders (with a message), the top banner, and one-tap **sold out** per flavor |
 | **Flavors** | Add, edit, delete, hide or reorder flavors. Name, tagline, protein/choco/calories/fat, colors (they drive the 3D cup), "New" badge, and **photo upload** (resized automatically) |
 | **Prices & delivery** | Cup price, cups per box, box price (with a live math check), and the delivery fee for orders under a box |
@@ -55,6 +57,10 @@ How it works: all the settings live in `data.js` between the `AK-CONFIG` markers
    - `ADMIN_PASSWORD` = the owner's password (10+ characters, e.g. `AkBowl-Cups-2026!`)
 3. **Redeploy:** Vercel → **Deployments → ⋯ on the latest → Redeploy**. Environment variables only apply to new deployments.
 4. The owner opens `/admin.html` and signs in with the password. She stays signed in for 30 days on that device.
+
+5. **Orders database (for the Orders tab):** Vercel → the ak-bowl project → **Storage → Create Database → Upstash (Redis)** → free plan → **Connect** it to this project. That adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. Then **Redeploy**.
+
+How orders get saved: when a customer taps "Send order on WhatsApp", the site also sends the order to `api/order.js`, which checks it, limits spam (15 orders per hour per connection) and stores it in the database. WhatsApp opens either way. Customer details stay in the private database, never in the public GitHub repo. Until the database is connected, the Orders tab shows these setup steps and the website keeps working normally.
 
 - **To change the password:** edit `ADMIN_PASSWORD` in Vercel and redeploy. Everyone gets signed out.
 - **When the key expires (after 1 year):** make a new one, replace `GITHUB_TOKEN`, and redeploy.

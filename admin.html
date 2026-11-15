@@ -137,6 +137,40 @@ h1,h2,h3{font-family:var(--spartan);font-weight:900;letter-spacing:-.02em;line-h
 .tog small{display:block;font-weight:400;color:var(--cocoa2);font-size:12.5px}
 .mf{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .mf .sp{flex:1}
+/* orders */
+.otabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+.otab{height:40px;padding:0 14px;border-radius:999px;font-weight:600;font-size:14px;background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--line)}
+.otab[aria-pressed="true"]{background:var(--cocoa);color:var(--paper);box-shadow:none}
+.otab small{opacity:.7;margin-left:4px}
+.osearch{width:100%;min-height:46px;padding:0 16px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-size:16px;margin-bottom:14px}
+.olist{display:grid;gap:12px}
+.ocard{background:var(--paper);border-radius:22px;padding:18px 18px 16px;box-shadow:0 20px 40px -34px rgba(46,26,18,.5);border-left:6px solid var(--sc,#999)}
+.ocard.st-new{--sc:#D97706;background:#FFF8EA}.ocard.st-confirmed{--sc:#2563EB}.ocard.st-delivered{--sc:var(--ok)}.ocard.st-cancelled{--sc:#9CA3AF;opacity:.7}
+.oh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.oh b{font-family:var(--spartan);font-weight:900;font-size:20px}
+.oh .when{margin-left:auto;font-size:12.5px;color:var(--cocoa2);font-weight:600}
+.pill{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:999px;color:#fff;background:var(--sc)}
+.cust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cust b{font-size:17px;margin-right:4px}
+.cust a{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line);text-decoration:none;font-weight:600;font-size:13.5px}
+.cust a.wa{background:#25D366;color:#fff;box-shadow:none}
+.cust svg{width:15px;height:15px}
+.addr,.onote{font-size:14px;margin-top:8px;color:var(--cocoa2)}
+.oitems{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.oitems li{font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--sand)}
+.otot{margin-top:10px;font-size:14px}
+.otot b{font-family:var(--spartan);font-weight:900;font-size:20px}
+.otot small{color:var(--cocoa2)}
+.oact{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.oact .btn{height:40px}
+.btn.blue{background:#2563EB}.btn.green{background:var(--ok)}
+.topfl{display:grid;gap:8px;margin-top:10px}
+.topfl div{display:grid;grid-template-columns:110px 1fr 40px;gap:10px;align-items:center;font-size:13.5px;font-weight:600}
+.topfl i{display:block;height:12px;border-radius:6px;background:var(--c,var(--cocoa))}
+.topfl span:last-child{text-align:right;font-family:var(--spartan);font-weight:900}
+.empty-o{text-align:center;padding:40px 10px;color:var(--cocoa2)}
+.empty-o b{display:block;font-family:var(--spartan);font-weight:900;font-size:22px;color:var(--cocoa);margin-bottom:6px}
+
 /* toast + publish overlay */
 .toast{position:fixed;left:50%;bottom:24px;z-index:60;transform:translate(-50%,20px);opacity:0;background:var(--cocoa);color:var(--paper);padding:12px 18px;border-radius:999px;font-weight:600;font-size:14px;transition:opacity .3s,transform .35s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
@@ -208,7 +242,8 @@ h1,h2,h3{font-family:var(--spartan);font-weight:900;letter-spacing:-.02em;line-h
   </header>
   <div class="layout">
     <nav class="nav" id="nav" aria-label="Sections">
-      <button type="button" data-p="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
+      <button type="button" data-p="orders" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Orders<span class="n" id="ordBadge" hidden>0</span></button>
+      <button type="button" data-p="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Today</button>
       <button type="button" data-p="flavors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="8" rx="8" ry="3"/><path d="M4 8l1.5 10a2 2 0 0 0 2 1.7h9a2 2 0 0 0 2-1.7L20 8"/></svg>Flavors</button>
       <button type="button" data-p="prices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 6.5C16 5 14.2 4.5 12 4.5c-2.8 0-4.5 1.4-4.5 3.4 0 4.6 9.5 2.6 9.5 7.6 0 2-1.9 3.5-5 3.5-2.4 0-4.2-.7-5.2-2.3"/></svg>Prices &amp; delivery</button>
       <button type="button" data-p="promos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="8" cy="8" r="1.5"/></svg>Promo codes</button>
