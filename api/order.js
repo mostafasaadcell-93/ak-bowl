@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
     name: str(b.name, 60), phone: str(b.phone, 30), address: str(b.address, 200), notes: str(b.notes, 300),
     items, cups: items.reduce((s, i) => s + i.qty, 0),
     full: num(b.full), save: num(b.save), promo: b.promo ? { code: str(b.promo.code, 20), off: num(b.promo.off, 100), disc: num(b.promo.disc) } : null,
-    fee: b.fee == null ? null : num(b.fee, 1000), total: num(b.total),
+    fee: b.fee == null ? null : num(b.fee, 1000), total: num(b.total), test: !!b.test,
   };
   if (!o.items.length || !o.name || o.phone.replace(/\D/g, '').length < 7) return send(res, 400, { error: 'Incomplete order' });
 
@@ -26,12 +26,13 @@ module.exports = async (req, res) => {
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'x').split(',')[0].trim();
   const ipKey = K.rate(crypto.createHash('sha256').update(ip).digest('hex').slice(0, 16));
   try {
-    const [count] = await pipe([['INCR', ipKey], ['EXPIRE', ipKey, 3600, 'NX']]);
-    if (count > 15) return send(res, 429, { error: 'Too many orders' });
+    const [count] = await pipe([['INCR', ipKey]]);
+    if (count === 1) await pipe([['EXPIRE', ipKey, 3600]]);
+    if (count > 15 && !b.test) return send(res, 429, { error: 'Too many orders' });
     const at = Date.now(), id = at.toString(36) + crypto.randomBytes(3).toString('hex');
     await pipe([['SET', K.order(id), JSON.stringify({ id, at, status: 'new', ...o })], ['ZADD', K.list, at, id]]);
     return send(res, 200, { ok: true, id });
   } catch (e) {
-    return send(res, 502, { error: 'Could not save the order' });
+    return send(res, 502, { error: 'Could not save the order: ' + String(e.message || e).slice(0, 200) });
   }
 };

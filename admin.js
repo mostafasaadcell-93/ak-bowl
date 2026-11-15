@@ -270,7 +270,7 @@ PAGES.orders = function () {
   const counts = { all: orders.length }; Object.keys(STAT).forEach(s => counts[s] = orders.filter(o => o.status === s).length);
   const q = oq.trim().toLowerCase().replace(/\s/g, '');
   const shown = orders.filter(o => (ofilter === 'all' || o.status === ofilter) && (!q || (o.name + o.phone + o.no).toLowerCase().replace(/\s/g, '').includes(q)));
-  $('#page').innerHTML = `<div class="row" style="align-items:flex-end;margin-bottom:6px"><div class="grow"><h2>Orders</h2></div><button class="btn ghost sm" type="button" id="csv">Export</button></div>
+  $('#page').innerHTML = `<div class="row" style="align-items:flex-end;margin-bottom:6px"><div class="grow"><h2>Orders</h2></div><button class="btn ghost sm" type="button" id="testO" style="margin-right:8px">Send test order</button><button class="btn ghost sm" type="button" id="csv">Export</button></div>
     <p class="lead">Orders from the website, newest first. Confirm them with the customer on WhatsApp, then mark them here. Updates every 30 seconds.</p>
     <div class="grid4" style="margin-bottom:16px">
       <div class="stat"><b>${today.length}</b><span>Orders today</span></div>
@@ -285,6 +285,7 @@ PAGES.orders = function () {
   $$('[data-of]').forEach(b => b.onclick = () => { ofilter = b.dataset.of; PAGES.orders(); });
   $('#oq').oninput = e => { oq = e.target.value; const pos = e.target.selectionStart; PAGES.orders(); const i = $('#oq'); i.focus(); i.setSelectionRange(pos, pos); };
   $('#csv').onclick = exportCsv;
+  $('#testO').onclick = testOrder;
   $('#olist').onclick = async e => {
     const b = e.target.closest('[data-st]'), d = e.target.closest('[data-del]');
     if (b) {
@@ -309,6 +310,17 @@ function orderCard(o) {
     <div class="otot">${o.cups} cup${o.cups > 1 ? 's' : ''} · <b>${money(o.total)}</b> <small>${extras}</small></div>
     ${o.notes ? `<p class="onote">📝 ${esc(o.notes)}</p>` : ''}
     <div class="oact">${acts}</div></article>`;
+}
+/* checks the whole path the website uses (api/order → database → this list) and shows any error */
+async function testOrder() {
+  const b = $('#testO'); b.disabled = true; b.textContent = 'Sending…';
+  try {
+    const r = await fetch('api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ test: true, no: 'TEST-' + Math.floor(100 + Math.random() * 900), name: 'Test order (delete me)', phone: '70 000 000', address: 'Owner panel test', items: [{ id: 'test', name: 'Test cup', qty: 1, price: 0 }], full: 0, save: 0, total: 0 }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { alert('Test order FAILED (' + r.status + '):\n' + (j.error || 'no details') + '\n\nSend a screenshot of this to your web developer.'); }
+    else { toast('Test order saved ✓ It will show in the list (cancel + delete it after)'); ofilter = 'new'; await refreshOrders(); }
+  } catch (e) { alert('Test order FAILED: ' + e.message); }
+  b.disabled = false; b.textContent = 'Send test order';
 }
 function exportCsv() {
   const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
