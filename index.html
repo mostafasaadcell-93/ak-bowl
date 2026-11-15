@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>AK Bowl · High-protein dessert cups</title>
-<meta name="description" content="AK Bowl protein cups: up to 40 g protein, no added sugar. 10 flavors. $3 a cup, 10 cups for $25 with free delivery.">
+<meta name="description" content="AK Bowl protein cups: up to 40 g protein, no added sugar. $3 a cup, 10 cups for $25 with free delivery.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="AK Bowl">
 <meta property="og:title" content="AK Bowl · High-protein dessert cups">
-<meta property="og:description" content="Up to 40 g protein, no added sugar. 10 flavors. Order on WhatsApp: 10 cups for $25 with free delivery.">
+<meta property="og:description" content="Up to 40 g protein, no added sugar. Order on WhatsApp: 10 cups for $25 with free delivery.">
 <meta property="og:url" content="https://ak-bowl.vercel.app/">
 <meta property="og:image" content="https://ak-bowl.vercel.app/assets/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -262,6 +262,7 @@ a{color:inherit}
 /* owner settings: banner, badges, sold out, promo */
 .ann{position:fixed;top:0;left:0;right:0;z-index:52;height:36px;display:flex;align-items:center;justify-content:center;padding:0 14px;background:var(--cocoa);color:var(--paper);font-size:13px;font-weight:600;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ann.closed{background:#A8261F}
+.ann[hidden]{display:none}
 body.has-ann .hd{top:36px}
 body.has-ann .toast{bottom:100px}
 .card .badges{position:absolute;top:14px;left:14px;z-index:2;display:flex;gap:6px;pointer-events:none}
@@ -440,7 +441,7 @@ body.has-ann .toast{bottom:100px}
   <div class="hero-txt">
     <p class="script">Healthy Eats</p>
     <h1><span class="ln"><span style="--i:0">Be strong.</span></span><span class="ln"><span style="--i:1">Be unique.</span></span><span class="ln"><span style="--i:2">Be <em>healthy.</em></span></span></h1>
-    <p class="lead">Protein dessert cups with <b>up to 40&nbsp;g protein</b> and <b>no added sugar</b>. Ten flavors, one AK Bowl.</p>
+    <p class="lead">Protein dessert cups with <b>up to 40&nbsp;g protein</b> and <b>no added sugar</b>. <span data-k="fw" data-cap="1">Ten</span> flavors, one AK Bowl.</p>
     <div class="cta"><a class="btn acc" href="#flavors"><span>Pick your flavor · <span data-k="cup">$3</span></span></a><a class="btn ghost" href="#box"><span><span data-k="n">10</span> cups · <span data-k="box">$25</span></span></a></div>
   </div>
   <div class="ring" aria-hidden="true"><svg viewBox="0 0 150 150"><defs><path id="circ" d="M75 75 m-60 0 a60 60 0 1 1 120 0 a60 60 0 1 1 -120 0"/></defs><text><textPath href="#circ">BE STRONG • BE UNIQUE • BE HEALTHY • </textPath></text></svg><b><span><span data-k="cup">$3</span><small>A CUP</small></span></b></div>

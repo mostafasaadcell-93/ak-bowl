@@ -122,7 +122,8 @@ function drawLid(f) {
   c.font = '400 34px "Pinyon Script", cursive'; c.fillText('Healthy Eats', C + 150, 402);
   // three blocks
   c.fillStyle = '#2C1810';
-  c.font = '800 70px "League Spartan", sans-serif'; c.fillText(`${f.lidP || f.p} G`, 238, 470);
+  const pv = f.lidP || f.p;
+  c.font = '800 70px "League Spartan", sans-serif'; c.fillText(pv != null ? `${pv} G` : 'HIGH', 238, 470);
   c.font = '800 44px "League Spartan", sans-serif'; c.fillText('PROTEIN', 238, 526);
   c.font = '700 34px "League Spartan", sans-serif'; c.fillText('MIXED BY', C, 456);
   c.fillStyle = f.ink; fitFont(c, f.name.toUpperCase(), 800, 70, '"League Spartan", sans-serif', 300); c.fillText(f.name.toUpperCase(), C, 516);
@@ -140,7 +141,7 @@ function drawSleeve(f) {
   c.fillStyle = '#F4EBDC'; c.fillRect(0, 0, W, Hh); speckle(c, W, Hh, 600, ['#E3D2B4', '#FFF8EC']);
   c.fillStyle = f.ink; c.textAlign = 'center'; c.textBaseline = 'middle';
   c.font = '800 46px "League Spartan", sans-serif'; c.fillText('CALORIES', W / 2, 96);
-  const rows = [`${f.p} G protein`, f.c != null ? `${f.c} G choco` : '— choco', f.k != null ? `${f.k} kcal` : '— kcal', f.f != null ? `${f.f} g fat` : '— fat'];
+  const rows = [f.p != null ? `${f.p} G protein` : '— protein', f.c != null ? `${f.c} G choco` : '— choco', f.k != null ? `${f.k} kcal` : '— kcal', f.f != null ? `${f.f} g fat` : '— fat'];
   rows.forEach((t, i) => { const y = 150 + i * 92; c.strokeStyle = f.ink; c.lineWidth = 5; pill(c, 96, y, 320, 70); c.stroke(); c.fillStyle = '#2C1810'; c.font = 'italic 800 36px "Montserrat", sans-serif'; c.fillText(t, W / 2, y + 37); });
   sleeveTex.needsUpdate = true;
 }

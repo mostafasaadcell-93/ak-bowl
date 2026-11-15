@@ -165,6 +165,23 @@ window.AK = /*AK-CONFIG-START*/{
    "hidden": false
   },
   {
+   "id": "kinder",
+   "name": "Kinder",
+   "p": null,
+   "c": null,
+   "k": null,
+   "f": null,
+   "lid": "#E8462E",
+   "ink": "#C51B21",
+   "fill": "#C8935F",
+   "top": "#4A2717",
+   "tag": "Milky chocolate",
+   "photo": "",
+   "soldOut": false,
+   "isNew": true,
+   "hidden": false
+  },
+  {
    "id": "oreo",
    "name": "Oreo",
    "p": 25,

@@ -19,7 +19,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const FL = AK.flavors.filter(f => !f.hidden), BY = Object.fromEntries(FL.map(f => [f.id, f]));
 const BUY = () => FL.filter(f => !f.soldOut);     // flavors you can order right now
-const SHORTS = { lotus: 'LOTUS', pistachio: 'PISTA', snickers: 'SNICK', twix: 'TWIX', cheesecake: 'CHEESE', peanut: 'PB', kitkat: 'KITKAT', galaxy: 'GALAXY', oreo: 'OREO', dark: 'DARK' };
+const SHORTS = { kinder: 'KINDER', lotus: 'LOTUS', pistachio: 'PISTA', snickers: 'SNICK', twix: 'TWIX', cheesecake: 'CHEESE', peanut: 'PB', kitkat: 'KITKAT', galaxy: 'GALAXY', oreo: 'OREO', dark: 'DARK' };
 const SHORT = id => SHORTS[id] || BY[id].name.toUpperCase().replace(/[^A-Z0-9 ]/g, '').split(' ')[0].slice(0, 6);
 const ICON = {
   plus: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 2.5v11M2.5 8h11"/></svg>',
@@ -74,12 +74,12 @@ function setFlavor(f, byUser) {
 let pendingScene = FL[0];
 (function waitScene() { if (window.AKScene) { window.AKScene.setFlavor(pendingScene || current); return; } setTimeout(waitScene, 120); })();
 
-$('#rail').innerHTML = FL.map(f => `<button class="chip" type="button" data-f="${f.id}" style="--c:${f.lid}" aria-pressed="false"><i></i>${esc(f.name)} <small>${f.soldOut ? 'sold out' : f.p + 'g'}</small></button>`).join('');
+$('#rail').innerHTML = FL.map(f => `<button class="chip" type="button" data-f="${f.id}" style="--c:${f.lid}" aria-pressed="false"><i></i>${esc(f.name)} <small>${f.soldOut ? 'sold out' : f.p != null ? f.p + 'g' : 'new'}</small></button>`).join('');
 $('#rail').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) setFlavor(BY[b.dataset.f], true); });
 function renderNow() {
   const f = current, q = cart[f.id] || 0;
   $('#now').innerHTML = `<span class="k">In the cup</span><h3>${esc(f.name)}</h3>
-    <div class="big"><b>${f.p}g</b><span>protein</span></div>
+    <div class="big">${f.p != null ? `<b>${f.p}g</b><span>protein</span>` : '<b>New</b><span>flavor</span>'}</div>
     <div class="mini">${f.k != null ? `<span>${f.k} kcal</span>` : ''}${f.f != null ? `<span>${f.f} g fat</span>` : ''}<span>No added sugar</span></div>
     <div class="row"><span class="price">${money(AK.price)}</span>${f.soldOut ? '<span class="soldtxt">Sold out</span>' : `<button class="addpill" type="button" data-add="${f.id}">${ICON.plus}${q ? `Add another (${q})` : 'Add to order'}</button>`}</div>`;
 }
@@ -99,7 +99,7 @@ function cardHTML(f) {
   const badges = (f.isNew ? '<span class="badge new">New</span>' : '') + (f.soldOut ? '<span class="badge out">Sold out</span>' : '');
   return `<article class="card${f.soldOut ? ' soldout' : ''}" id="fl-${f.id}" data-id="${f.id}" style="--c:${f.lid}">
     <div class="ph">${badges ? `<div class="badges">${badges}</div>` : ''}<img src="${img(f, true)}" alt="AK Bowl ${esc(f.name)} protein cup" loading="lazy" width="480" height="650"><button type="button" data-open="${f.id}" aria-label="See ${esc(f.name)} details"></button>${wave}
-      <div class="pro" aria-hidden="true"><b>${f.p}g</b><small>PROTEIN</small></div></div>
+      <div class="pro" aria-hidden="true">${f.p != null ? `<b>${f.p}g</b><small>PROTEIN</small>` : '<b style="font-size:.8em">NEW</b><small>FLAVOR</small>'}</div></div>
     <div class="bd"><h3>${esc(f.name)}</h3><p class="tag">${esc(f.tag)}</p>
       <div class="mac">${mac.length ? mac.map(m => `<span>${m}</span>`).join('') : '<span>Full label soon</span>'}</div>
       <div class="ft"><span class="price">${money(AK.price)}<small>/ cup</small></span><div class="ctl" data-ctl="${f.id}"></div></div></div></article>`;
@@ -174,7 +174,7 @@ function layers() {
 
 /* ================= COMPARE ================= */
 const MET = { p: ['g', 'Protein per cup. Higher is more protein.'], k: [' kcal', 'Calories per cup, lightest first.'], f: [' g', 'Fat per cup, leanest first.'], r: ['g', 'Grams of protein per 100 kcal. Higher means more protein for the calories.'] };
-const metric = (f, m) => m === 'r' ? (f.k ? +(f.p / f.k * 100).toFixed(1) : null) : f[m];
+const metric = (f, m) => m === 'r' ? (f.k && f.p != null ? +(f.p / f.k * 100).toFixed(1) : null) : f[m];
 function renderBars(m) {
   const rows = FL.filter(f => metric(f, m) != null).sort((a, b) => (m === 'k' || m === 'f') ? metric(a, m) - metric(b, m) : metric(b, m) - metric(a, m));
   const max = Math.max(...rows.map(f => metric(f, m)));
@@ -217,7 +217,7 @@ function renderCart() {
   if (view === 'done') return;
   if (!p.n) { view = 'list'; body.innerHTML = `<div class="empty"><img src="${(AK._photos && AK._photos.scoop) || 'assets/photos/scoop-sm.webp'}" alt=""><b>Nothing scooped yet</b>Pick a flavor and it lands here.</div>`; foot.innerHTML = `<button class="gobtn ghost" type="button" data-close>Browse flavors</button>`; return; }
   if (view === 'list') {
-    const lines = FL.filter(f => cart[f.id]).map(f => `<div class="line"><img src="${img(f, true)}" alt=""><div><b>${esc(f.name)}</b><small>${f.p} g protein · ${money(AK.price)} each</small></div>
+    const lines = FL.filter(f => cart[f.id]).map(f => `<div class="line"><img src="${img(f, true)}" alt=""><div><b>${esc(f.name)}</b><small>${f.p != null ? f.p + ' g protein · ' : ''}${money(AK.price)} each</small></div>
       <div class="step" role="group" aria-label="${esc(f.name)} quantity"><button type="button" data-dec="${f.id}" aria-label="One less">${ICON.minus}</button><output>${cart[f.id]}</output><button type="button" data-add="${f.id}" aria-label="One more">${ICON.plus}</button></div></div>`).join('');
     const need = AK.box.size - p.rest;
     const nudge = p.rest >= Math.ceil(AK.box.size * .6) && AK.box.price < AK.box.size * AK.price ? `<div class="nudge">🎁<span>Add <b>${need} more cup${need > 1 ? 's' : ''}</b> and ${p.boxes ? 'another' : 'the'} ${AK.box.size} cost just <b>${money(AK.box.price)}</b> with free delivery.</span></div>` : '';
@@ -384,7 +384,7 @@ addEventListener('scroll', onScroll, { passive: true }); addEventListener('resiz
 /* ================= OWNER SETTINGS: texts, banner, closed, preview ================= */
 (function settings() {
   const full = AK.box.size * AK.price, saveAmt = full - AK.box.price;
-  const K = { cup: money(AK.price), box: money(AK.box.price), full: money(full), save: money(saveAmt), n: AK.box.size, nw: (WORD[AK.box.size] || AK.box.size) };
+  const K = { cup: money(AK.price), box: money(AK.box.price), full: money(full), save: money(saveAmt), n: AK.box.size, nw: (WORD[AK.box.size] || AK.box.size), fw: (WORD[FL.length] || FL.length) };
   $$('[data-k]').forEach(el => { const v = K[el.dataset.k]; el.textContent = el.dataset.cap ? String(v).charAt(0).toUpperCase() + String(v).slice(1) : v; });
   if (saveAmt <= 0) $$('[data-k="full"], .perk-save').forEach(el => el.remove());
   if (money(AK.price).length > 3) $('.ring').classList.add('long');

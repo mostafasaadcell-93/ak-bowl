@@ -151,7 +151,7 @@ const PAGES = {
       <div class="fl" id="fl">${cfg.flavors.map((f, i) => `<div class="fitem${f.hidden ? ' hid' : ''}" style="--c:${f.lid}">
         <div class="ord"><button type="button" data-mv="${i}" data-d="-1" aria-label="Move ${esc(f.name)} up" ${i ? '' : 'disabled'}>${IC.up}</button><button type="button" data-mv="${i}" data-d="1" aria-label="Move ${esc(f.name)} down" ${i < cfg.flavors.length - 1 ? '' : 'disabled'}>${IC.down}</button></div>
         <img src="${photoSrc(f)}" alt="">
-        <div><b>${esc(f.name)}</b><small>${f.p} g protein${f.k != null ? ` · ${f.k} kcal` : ''}</small>
+        <div><b>${esc(f.name)}</b><small>${f.p != null ? f.p + ' g protein' : 'Nutrition not added yet'}${f.k != null ? ` · ${f.k} kcal` : ''}</small>
           <div class="tags">${f.soldOut ? '<span class="tg out">Sold out</span>' : ''}${f.isNew ? '<span class="tg new">New</span>' : ''}${f.hidden ? '<span class="tg hid">Hidden</span>' : ''}</div></div>
         <div class="acts"><span class="hint">Sold out</span>${sw('so-' + f.id, f.soldOut, f.name + ' sold out', 'red')}<button class="btn ghost sm" type="button" data-ed="${f.id}">Edit</button></div></div>`).join('')}</div>`;
     $('#addF').onclick = () => editor(null);
@@ -386,7 +386,6 @@ function editor(id) {
   $('#edSave').onclick = () => {
     const name = $('#eN').value.trim(); const num = k => { const v = $('#' + k).value.trim(); return v === '' ? null : Math.max(0, +v); };
     if (!name) { $('#edErr').textContent = 'Give the flavor a name.'; $('#eN').focus(); return; }
-    if (num('eP') == null) { $('#edErr').textContent = 'Protein is needed (it\'s on every card).'; $('#eP').focus(); return; }
     Object.assign(f, { name, tag: $('#eT').value.trim(), p: num('eP'), c: num('eC'), k: num('eK'), f: num('eF'), lid: $('#cL').value, ink: $('#cI').value, fill: $('#cF').value, top: $('#cT').value,
       soldOut: $('#tSo').getAttribute('aria-checked') === 'true', isNew: $('#tNew').getAttribute('aria-checked') === 'true', hidden: $('#tHid').getAttribute('aria-checked') === 'true' });
     if (isNew) { let sid = slug(name), n = 2; while (cfg.flavors.some(x => x.id === sid)) sid = slug(name) + '-' + n++; f.id = sid; }
