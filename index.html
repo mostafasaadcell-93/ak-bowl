@@ -21,6 +21,12 @@
 <link rel="preload" href="assets/fonts/league-spartan-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/montserrat-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/pinyon-script-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script src="data.js"></script>
+<script>/* admin preview: ?preview=1 shows the unpublished draft saved by admin.html in this browser */
+try { if (/[?&]preview=1/.test(location.search)) { const d = JSON.parse(localStorage.getItem('akbowl-admin-draft') || 'null'); if (d && d.config) { window.AK = d.config; window.AK._photos = d.photos || {}; window.AK_PREVIEW = 1; } } } catch (e) {}</script>
+<script>/* seasonal look: "season" in data.js (or the Christmas switch in admin.html) */
+if (window.AK && AK.season === 'christmas') document.documentElement.classList.add('xmas');</script>
+<link rel="stylesheet" href="assets/xmas.css">
 <script type="importmap">{"imports":{"three":"./assets/vendor/three.module.min.js"}}</script>
 <style>
 @font-face{font-family:"League Spartan";font-weight:700;font-style:normal;font-display:swap;src:url(assets/fonts/league-spartan-latin-700-normal.woff2) format("woff2")}
@@ -553,9 +559,6 @@ body.has-ann .toast{bottom:100px}
 <div class="toast" id="toast" role="status"></div>
 <div class="sr" id="live" aria-live="polite"></div>
 
-<script src="data.js"></script>
-<script>/* admin preview: ?preview=1 shows the unpublished draft saved by admin.html in this browser */
-try { if (/[?&]preview=1/.test(location.search)) { const d = JSON.parse(localStorage.getItem('akbowl-admin-draft') || 'null'); if (d && d.config) { window.AK = d.config; window.AK._photos = d.photos || {}; window.AK_PREVIEW = 1; } } } catch (e) {}</script>
 <script src="app.js"></script>
 <script type="module" src="scene.js"></script>
 </body>

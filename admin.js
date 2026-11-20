@@ -134,11 +134,13 @@ const PAGES = {
           <div class="field"><label for="banTxt">Banner text</label><input id="banTxt" value="${esc(cfg.banner.text)}" maxlength="90" placeholder="e.g. New flavor: Oreo is here!"></div>
           <div class="annprev" id="annPrev"></div></div>
       </div>
+      <div class="card"><div class="row"><div class="grow"><h3>🎄 Christmas look</h3><p class="hint">Snow, lights, Santa hat and a red Christmas box on the website. Switch off after the holidays to get the normal design back.</p></div>${sw('swXmas', cfg.season === 'christmas', 'Christmas look')}</div></div>
       <div class="card"><h3>Sold out today</h3><p class="hint">Tap a flavor to mark it sold out. Tap again when it's back.</p>
         <div class="chips" id="soChips">${vis.map(f => `<button type="button" class="chip" data-so="${f.id}" aria-pressed="${!!f.soldOut}" style="--c:${f.lid}"><i></i>${esc(f.name)}</button>`).join('')}</div></div>`;
     const annPrev = () => { const el = $('#annPrev'), closed = !cfg.open, t = closed ? cfg.closedMsg : cfg.banner.text; el.textContent = t || ' '; el.className = 'annprev' + (closed ? ' closed' : '') + (!closed && !cfg.banner.on ? ' off' : ''); };
     annPrev();
     $('#swOpen').onclick = () => { cfg.open = !cfg.open; changed(); PAGES.home(); };
+    $('#swXmas').onclick = () => { cfg.season = cfg.season === 'christmas' ? '' : 'christmas'; changed(); $('#swXmas').setAttribute('aria-checked', cfg.season === 'christmas'); };
     $('#swBan').onclick = () => { cfg.banner.on = !cfg.banner.on; changed(); $('#swBan').setAttribute('aria-checked', cfg.banner.on); annPrev(); };
     $('#closedMsg').oninput = e => { cfg.closedMsg = e.target.value; changed(); annPrev(); };
     $('#banTxt').oninput = e => { cfg.banner.text = e.target.value; changed(); annPrev(); };
@@ -439,6 +441,7 @@ function summary() {
   if (JSON.stringify(b.promos) !== JSON.stringify(cfg.promos)) out.push('promo codes');
   if (b.open !== cfg.open) out.push(cfg.open ? 'orders open' : 'orders paused');
   if (JSON.stringify(b.banner) !== JSON.stringify(cfg.banner) || b.closedMsg !== cfg.closedMsg) out.push('banner');
+  if ((b.season || '') !== (cfg.season || '')) out.push(cfg.season === 'christmas' ? 'Christmas look on' : 'Christmas look off');
   if (b.whatsapp !== cfg.whatsapp || b.instagram !== cfg.instagram) out.push('contact');
   return out.length ? out.slice(0, 6).join(', ') + (out.length > 6 ? '…' : '') : 'update';
 }

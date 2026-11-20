@@ -393,5 +393,14 @@ addEventListener('scroll', onScroll, { passive: true }); addEventListener('resiz
   if (window.AK_PREVIEW) { const b = document.createElement('div'); b.className = 'preview-pill'; b.textContent = 'Preview · not published yet'; document.body.appendChild(b); }
 })();
 
+/* ================= SEASONAL LOOK (Christmas edition) ================= */
+(function season() {
+  if (!document.documentElement.classList.contains('xmas')) return;
+  const sc = $('.hero-txt .script'); if (sc) sc.textContent = 'Christmas Edition';
+  document.body.insertAdjacentHTML('beforeend', '<div class="xlights" aria-hidden="true"></div><div class="xsnow" aria-hidden="true"><i></i><i></i></div>');
+  const slogan = $('.foot .slogan'); if (slogan) slogan.insertAdjacentHTML('beforebegin', '<p class="xmsg">Merry Christmas</p>');
+  const tc = $('meta[name="theme-color"]'); if (tc) tc.content = '#B3121B';
+})();
+
 if ($('#yr')) $('#yr').textContent = new Date().getFullYear();
 setFlavor(BUY()[0] || FL[0]); updateCounts(); onScroll();

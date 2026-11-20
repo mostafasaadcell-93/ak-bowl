@@ -1,0 +1,74 @@
+/* ================= AK BOWL · CHRISTMAS EDITION =================
+   Everything here only applies when <html class="xmas">, which is set from data.js ("season": "christmas")
+   or the "Christmas look" switch in admin.html. Turn it off and the normal site comes back untouched.
+   Nothing here changes the 3D scene or the existing animations. */
+.xmas{--xred:#B3121B;--xred2:#7E0B13;--xgreen:#164A33;--xgold:#E9B562;--snow:#FFFFFF}
+
+/* page: faint snowflake pattern on the sand background */
+.xmas body{background-color:var(--sand);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='none' stroke='%23A9825A' stroke-opacity='.2' stroke-width='2' stroke-linecap='round'%3E%3Cg transform='translate(46 58)'%3E%3Cpath d='M0-13V13M-11.3-6.5L11.3 6.5M-11.3 6.5L11.3-6.5M-4-10L0-6L4-10M-4 10L0 6L4 10'/%3E%3C/g%3E%3Cg transform='translate(190 150) scale(.7)'%3E%3Cpath d='M0-13V13M-11.3-6.5L11.3 6.5M-11.3 6.5L11.3-6.5M-4-10L0-6L4-10M-4 10L0 6L4 10'/%3E%3C/g%3E%3Cg transform='translate(96 214) scale(.5)'%3E%3Cpath d='M0-13V13M-11.3-6.5L11.3 6.5M-11.3 6.5L11.3-6.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+
+/* top banner: Christmas ribbon + a string of lights hanging under it */
+.xmas .ann{background:linear-gradient(90deg,var(--xred2),var(--xred) 30%,var(--xred) 70%,var(--xred2));color:#fff;font-weight:700;letter-spacing:.03em}
+.xmas .ann.closed{background:#5A0A10}
+.xlights{position:fixed;left:0;right:0;top:0;z-index:53;height:26px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='26'%3E%3Cpath d='M0 3Q30 12 60 3Q90 12 120 3' stroke='%23173A26' stroke-width='1.6' fill='none'/%3E%3Cg%3E%3Crect x='13' y='6.5' width='5' height='4' rx='1' fill='%23394'/%3E%3Cellipse cx='15.5' cy='15.5' rx='4' ry='6' fill='%23FF3A3A'/%3E%3Crect x='42' y='6.5' width='5' height='4' rx='1' fill='%23394'/%3E%3Cellipse cx='44.5' cy='15.5' rx='4' ry='6' fill='%23FFC93C'/%3E%3Crect x='73' y='6.5' width='5' height='4' rx='1' fill='%23394'/%3E%3Cellipse cx='75.5' cy='15.5' rx='4' ry='6' fill='%2335C46A'/%3E%3Crect x='102' y='6.5' width='5' height='4' rx='1' fill='%23394'/%3E%3Cellipse cx='104.5' cy='15.5' rx='4' ry='6' fill='%234FA8FF'/%3E%3C/g%3E%3C/svg%3E") repeat-x 0 0/120px 26px;
+  filter:drop-shadow(0 0 4px rgba(255,214,120,.55))}
+.xmas body.has-ann .xlights{top:36px}
+.xmas body.has-ann .hd{padding-top:20px}
+.xmas body.has-ann .hd.solid{padding-top:16px}
+@keyframes xTwinkle{0%,100%{filter:drop-shadow(0 0 3px rgba(255,214,120,.35))}50%{filter:drop-shadow(0 0 8px rgba(255,214,120,.85))}}
+.xlights{animation:xTwinkle 2.6s ease-in-out infinite}
+
+/* gentle snowfall over the page (never blocks taps) */
+.xsnow{position:fixed;inset:0;z-index:45;pointer-events:none;overflow:hidden}
+.xsnow i{position:absolute;left:0;right:0;top:-100%;height:200%;opacity:.9;will-change:transform}
+.xsnow i:nth-child(1){background-image:radial-gradient(circle at 20px 30px,#fff 0 2px,rgba(150,120,90,.25) 2.6px,transparent 3.4px),radial-gradient(circle at 140px 110px,#fff 0 1.6px,rgba(150,120,90,.22) 2.2px,transparent 3px),radial-gradient(circle at 80px 190px,#fff 0 2.4px,rgba(150,120,90,.25) 3px,transparent 3.8px);background-size:220px 240px;animation:xFall 26s linear infinite}
+.xsnow i:nth-child(2){background-image:radial-gradient(circle at 60px 60px,#fff 0 1.2px,rgba(150,120,90,.2) 1.8px,transparent 2.4px),radial-gradient(circle at 170px 160px,#fff 0 1.4px,rgba(150,120,90,.2) 2px,transparent 2.6px);background-size:260px 220px;opacity:.7;animation:xFall 40s linear infinite}
+@keyframes xFall{from{transform:translate3d(0,0,0)}to{transform:translate3d(40px,50%,0)}}
+@media (prefers-reduced-motion:reduce){.xsnow{display:none}.xlights{animation:none}}
+
+/* Santa hat on the logo and on the loader pod */
+.xmas .hd .logo{position:relative}
+.xmas .hd .logo::before{content:"";position:absolute;left:22%;top:-26%;width:34%;height:auto;aspect-ratio:64/56;z-index:1;transform:rotate(-10deg);transition:transform .4s var(--ease);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 56'%3E%3Cpath d='M8 42C13 22 28 6 44 6c9 0 14 9 12 22-3-6-7-9-11-7-6 3-6 13-3 21z' fill='%23C8141E'/%3E%3Cpath d='M30 12c6-4 13-3 17 1' stroke='%23fff' stroke-opacity='.25' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Crect x='3' y='37' width='46' height='13' rx='6.5' fill='%23fff'/%3E%3Ccircle cx='56' cy='30' r='7.5' fill='%23fff'/%3E%3C/svg%3E") no-repeat center/contain;
+  filter:drop-shadow(0 3px 3px rgba(46,26,18,.25))}
+
+.xmas .loader .in{position:relative}
+.xmas .loader .in::before{content:"";position:absolute;left:50%;top:-22px;width:46px;height:40px;margin-left:-6px;transform:rotate(14deg);z-index:1;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 56'%3E%3Cpath d='M8 42C13 22 28 6 44 6c9 0 14 9 12 22-3-6-7-9-11-7-6 3-6 13-3 21z' fill='%23C8141E'/%3E%3Crect x='3' y='37' width='46' height='13' rx='6.5' fill='%23fff'/%3E%3Ccircle cx='56' cy='30' r='7.5' fill='%23fff'/%3E%3C/svg%3E") no-repeat center/contain}
+.xmas .loader small{font-size:0}
+.xmas .loader small::after{content:"Christmas edition";font-size:12px;letter-spacing:.3em;color:var(--xred)}
+
+/* holly next to every section label */
+.xmas .eyebrow::before{content:"";display:inline-block;width:26px;height:18px;margin-right:9px;vertical-align:-4px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 28'%3E%3Cpath d='M20 16C14 6 4 4 2 10c4 0 4 4 2 6 4 0 6 4 4 6 6-2 10-2 12-6z' fill='%231F6B3A'/%3E%3Cpath d='M20 16c6-10 16-12 18-6-4 0-4 4-2 6-4 0-6 4-4 6-6-2-10-2-12-6z' fill='%23288A4A'/%3E%3Ccircle cx='16.5' cy='17' r='4' fill='%23D21F26'/%3E%3Ccircle cx='23.5' cy='17' r='4' fill='%23B8121A'/%3E%3Ccircle cx='20' cy='11.5' r='4' fill='%23E5333A'/%3E%3C/svg%3E") no-repeat center/contain}
+
+/* hero: Christmas script line + red offer button */
+.xmas .hero-txt .script{color:var(--xred)}
+.xmas .hero .cta .btn.ghost{position:relative;background:var(--xred);border-color:var(--xred);color:#fff;box-shadow:0 18px 30px -16px rgba(179,18,27,.75)}
+.xmas .hero .cta .btn.ghost::after{content:"Christmas offer";position:absolute;right:-8px;top:-13px;padding:4px 10px;border-radius:999px;background:var(--xgreen);color:#fff;font-family:var(--sans);font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;transform:rotate(4deg);box-shadow:0 6px 12px -6px rgba(0,0,0,.4)}
+
+/* the moving band: candy red with snowflakes */
+.xmas .marquee{background:var(--xred);color:#fff;box-shadow:inset 0 3px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.18)}
+.xmas .marquee span::after{content:"❄";width:auto;height:auto;border-radius:0;background:none;color:#fff;font-size:.75em;line-height:1}
+
+/* flavor cards: a little snow on top */
+.xmas .card::after{content:"";position:absolute;left:14px;right:14px;top:-7px;height:20px;z-index:4;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 24' preserveAspectRatio='none'%3E%3Cpath d='M6 6Q4 0 14 0H286Q296 0 294 6V10C284 18 276 8 266 14C254 22 244 10 232 16C220 22 210 12 198 17C184 23 174 11 160 16C148 21 138 12 126 17C112 22 102 10 88 15C76 20 64 12 52 17C38 22 28 10 16 15C10 18 8 14 6 12Z' fill='%23fff'/%3E%3C/svg%3E") no-repeat center/100% 100%;
+  filter:drop-shadow(0 3px 2px rgba(46,26,18,.14))}
+
+/* the box: deep Christmas red with gold sparkle + holly */
+.xmas .box{background:linear-gradient(155deg,#9A111B 0%,#6E0A12 55%,#3E060B 100%)}
+.xmas .box::before{background:radial-gradient(45% 55% at 88% 8%,rgba(233,181,98,.28),transparent 70%),radial-gradient(40% 50% at 0% 100%,rgba(233,181,98,.14),transparent 70%),
+  radial-gradient(circle at 12% 22%,rgba(255,255,255,.5) 0 1.5px,transparent 2.5px),radial-gradient(circle at 64% 14%,rgba(255,255,255,.4) 0 1.2px,transparent 2px),radial-gradient(circle at 36% 78%,rgba(255,255,255,.45) 0 1.4px,transparent 2.4px),radial-gradient(circle at 82% 66%,rgba(255,255,255,.35) 0 1.2px,transparent 2px)}
+.xmas .box::after{content:"";position:absolute;right:clamp(10px,3vw,40px);top:clamp(10px,2.5vw,30px);width:clamp(70px,9vw,120px);aspect-ratio:40/28;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 28'%3E%3Cpath d='M20 16C14 6 4 4 2 10c4 0 4 4 2 6 4 0 6 4 4 6 6-2 10-2 12-6z' fill='%232E8B57'/%3E%3Cpath d='M20 16c6-10 16-12 18-6-4 0-4 4-2 6-4 0-6 4-4 6-6-2-10-2-12-6z' fill='%233BA066'/%3E%3Ccircle cx='16.5' cy='17' r='4' fill='%23FF3B42'/%3E%3Ccircle cx='23.5' cy='17' r='4' fill='%23E01E26'/%3E%3Ccircle cx='20' cy='11.5' r='4' fill='%23FF5A60'/%3E%3C/svg%3E") no-repeat center/contain;transform:rotate(12deg)}
+.xmas .box .eyebrow{color:rgba(255,236,210,.75)}
+.xmas .box .eyebrow::after{content:"Christmas offer";display:inline-block;margin-left:12px;padding:4px 10px;border-radius:999px;background:var(--xgold);color:#4A070C;font-size:10px;letter-spacing:.14em;vertical-align:2px}
+
+/* footer: pine green with a snowy edge + greeting */
+.xmas .foot{position:relative;background:linear-gradient(180deg,#1A5239,var(--xgreen) 40%,#0E3122)}
+.xmas .foot::before{content:"";position:absolute;left:0;right:0;top:-1px;height:28px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 28' preserveAspectRatio='none'%3E%3Cpath d='M0 0H600V12C580 22 562 8 540 16C516 25 500 9 476 17C452 25 436 10 412 18C388 26 372 10 348 17C324 24 306 9 282 16C258 23 242 8 218 16C194 24 176 10 152 17C128 24 112 9 88 16C64 23 46 9 24 16C14 19 6 16 0 13Z' fill='%23fff'/%3E%3C/svg%3E") no-repeat center/100% 100%}
+.xmas .foot .xmsg{font-family:var(--script);font-size:clamp(34px,5vw,54px);line-height:1;color:var(--xgold)}
+.xmas .foot .links a{border-color:rgba(255,255,255,.3)}

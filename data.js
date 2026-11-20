@@ -1,15 +1,17 @@
 /* AK Bowl website settings. Edited from admin.html (Publish), or by hand.
    Keep the AK-CONFIG markers: the admin page reads and rewrites everything between them.
    price = one cup in US$; box = N cups (any mix) for a fixed price; delivery.fee null = "confirmed on WhatsApp".
+   season "christmas" = Christmas look (snow, lights, red box); "" = normal design.
    Flavor macros come from each cup's CALORIES sleeve: p protein g, c choco g, k kcal, f fat g (null = not on the label). */
 window.AK = /*AK-CONFIG-START*/{
  "whatsapp": "96170426400",
  "instagram": "https://www.instagram.com/ak__bowl/",
  "open": true,
  "closedMsg": "We're closed right now. Orders open again soon!",
+ "season": "christmas",
  "banner": {
-  "on": false,
-  "text": "❄️ Winter cravings? 10 cups for $25 + free delivery"
+  "on": true,
+  "text": "🎄 Christmas Offer: 10 cups for $25 + free delivery"
  },
  "price": 3,
  "box": {
